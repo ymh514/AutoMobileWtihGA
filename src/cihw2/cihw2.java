@@ -1,8 +1,10 @@
 package cihw2;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -20,13 +22,13 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class cihw2 extends Application {
-	
-	
+
 	private Canvas canvasPane = new Canvas();
 	private Car car = new Car(this.canvasPane);
 	private Line sensorLine1;
@@ -38,6 +40,9 @@ public class cihw2 extends Application {
 	private Label angleInfo = new Label("");
 	private int finalFlag = 0;
 	private double initialAngleValue = 90;
+	private double startPointX = 30;
+	private double startPointY = 52;
+	private int ratio = 10;
 	public ArrayList<float[]> inputArray = new ArrayList<float[]>();
 
 	@Override
@@ -51,149 +56,34 @@ public class cihw2 extends Application {
 		BorderPane ciPane = new BorderPane();
 		VBox infoBox = new VBox(10);
 		Button loadFile = new Button("Load File");
-		Button start = new Button("Start");
-		Button restart = new Button("Restart");
-		Label initialAngle = new Label("Angle value : 90º");
-		Label initialAngleSign = new Label("Please slide to start angle :");
-		Slider slider = new Slider();
-		
-		line1Dist.setTextFill(Color.DARKRED);
-		line2Dist.setTextFill(Color.DARKBLUE);
-		line3Dist.setTextFill(Color.DARKGREEN);
-
-		slider.setPrefSize(180, 30);
-		slider.setMin(-270);
-		slider.setMax(90);
-		slider.setValue(90);
-		slider.setShowTickLabels(true);
-		slider.setShowTickMarks(true);
-		slider.setMajorTickUnit(50);
-		slider.setMinorTickCount(5);
-		slider.setBlockIncrement(10);
-
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
-		infoBox.getChildren().addAll(loadFile,start,restart, line3Dist, line1Dist, line2Dist, angleInfo,initialAngleSign,slider,initialAngle);
-	
+		infoBox.getChildren().addAll(loadFile);
 		canvasPane.getChildren().add(car);
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
 
-		
 		/*
 		 * Set sensor lines
 		 */
-		
-		sensorLinesSetting();
-		
-		slider.valueProperty().addListener(new ChangeListener<Number>() {
-			@Override
-			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-				// TODO Auto-generated method stub
-				initialAngle.setText("Angle value : "+Math.round((double)newValue * 100.0) / 100.0+"º");
-				initialAngleValue = (double) Math.round((double)newValue * 100.0) / 100.0;
-				car.angle = (double) newValue;
-				car.initialSetCar(car.getCenterX(), car.getCenterY() );
-				initialSetSensorsLine();
-			}
-        });
 
-		loadFile.setOnMouseClicked(event ->{
+		sensorLinesSetting();
+
+		loadFile.setOnMouseClicked(event -> {
 			try {
 				inputFileChoose(null, loadFile);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			printArrayData(inputArray);
-			
-			
+			drawPath(inputArray);
 		});
-			
-		
-		restart.setOnMouseClicked(event ->{
-			this.canvasPane.rePaint();
-			this.car = new Car(this.canvasPane);
-			canvasPane.getChildren().add(car);
-			sensorLinesSetting();
-			finalFlag = 0;
-			line1Dist.setText("Middle Line");
-			line2Dist.setText("Right Line");
-			line3Dist.setText("Left Line");
-			angleInfo.setText("Angle value : "+Math.round((double) slider.getValue() * 100.0) / 100.0+"º");
-			slider.setDisable(false);
-			
-		});
-		
-		canvasPane.setOnMouseClicked(event ->{
+
+		canvasPane.setOnMouseClicked(event -> {
 
 			car.initialSetCar(event.getX(), event.getY());
 
 			initialSetSensorsLine();
 
-		});
-
-		/*
-		 * When start button clicked
-		 */
-		
-		start.setOnMouseClicked(evnet -> {
-
-			slider.setDisable(true);
-			initialAngle.setText("Initial angle value : " + initialAngleValue+"º");
-			initialAngleSign.setText("");
-			// Open a thread to update GUI
-			
-			new Thread() {
-				public void run() {
-					while (true) {
-						try {
-							// Main thread sleep
-							Thread.sleep(100);
-
-							Platform.runLater(new Runnable() {
-								// GUI update by javafx thread
-								@Override
-								public void run() {
-									// The function for the final round
-									if (finalFlag == 1) {
-										line1Dist.setText("done");
-										line2Dist.setText("done");
-										line3Dist.setText("done");
-										angleInfo.setText("done");
-										car.tuneCar(canvasPane);
-										sensorLine1.setVisible(false);
-										sensorLine2.setVisible(false);
-										sensorLine3.setVisible(false);
-										// Interrupted the thread which just
-										// created
-										
-										// The function for normal round
-									} else {
-
-										// Tune car's position and angle
-										car.tuneCar(canvasPane);
-
-										initialSetSensorsLine();
-									}
-
-								}
-							});
-
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-
-						// When goal -> break the while loop
-						double checkBreak = car.getCenterY();
-						if (checkBreak <= canvasPane.line8.getEndY() + 30) {
-							finalFlag = 1;
-							break;
-						}
-
-					}
-				}
-			}.start();
 		});
 
 		Scene primaryScene = new Scene(ciPane);
@@ -202,30 +92,46 @@ public class cihw2 extends Application {
 		primaryStage.show();
 
 	}
-	public void initialSetSensorsLine(){
+
+	public void drawPath(ArrayList<float[]> showArray) {
+		for (int i = 0; i < showArray.size(); i++) {
+			// for(int j=0;j<showArray.get(i).length;j++){
+			Circle path = new Circle();
+			path.setCenterX(startPointX * ratio + showArray.get(i)[0] * ratio);
+			path.setCenterY(startPointY * ratio + showArray.get(i)[1] * -ratio);
+			path.setRadius(3);
+			path.setStroke(Color.DARKGRAY);
+			path.setFill(Color.DARKGRAY);
+			canvasPane.getChildren().add(path);
+
+			// }
+		}
+	}
+
+	public void initialSetSensorsLine() {
 		sensorLine1.setEndX(car.sensor1.getX());
 		sensorLine1.setEndY(car.sensor1.getY());
 		sensorLine2.setEndX(car.sensor2.getX());
 		sensorLine2.setEndY(car.sensor2.getY());
 		sensorLine3.setEndX(car.sensor3.getX());
 		sensorLine3.setEndY(car.sensor3.getY());
-		
+
 		// Calculate the distance with walls
 		car.sensor1.calDistance(canvasPane);
 		car.sensor2.calDistance(canvasPane);
 		car.sensor3.calDistance(canvasPane);
 
 		// Set showing information
-		line1Dist.setText("Red Line :"+car.sensor1.getDist());
-		line2Dist.setText("Blue Line :"+car.sensor2.getDist());
-		line3Dist.setText("Green Line :"+car.sensor3.getDist());
-		angleInfo.setText("Angle with x-axis : " + Math.round(car.angle * 1000.0) / 1000.0+"º");
+//		line1Dist.setText("Red Line :" + car.sensor1.getDist());
+//		line2Dist.setText("Blue Line :" + car.sensor2.getDist());
+//		line3Dist.setText("Green Line :" + car.sensor3.getDist());
+//		angleInfo.setText("Angle with x-axis : " + Math.round(car.angle * 1000.0) / 1000.0 + "º");
 
 		// Set sensor lines
 		int sensor1ClosetId = car.sensor1.getClosestLineId();
 		int sensor2ClosetId = car.sensor2.getClosestLineId();
 		int sensor3ClosetId = car.sensor3.getClosestLineId();
-		
+
 		sensorLine1.setEndX(car.sensor1.getIntersectionPointX(sensor1ClosetId));
 		sensorLine1.setEndY(car.sensor1.getIntersectionPointY(sensor1ClosetId));
 		sensorLine2.setEndX(car.sensor2.getIntersectionPointX(sensor2ClosetId));
@@ -234,15 +140,15 @@ public class cihw2 extends Application {
 		sensorLine3.setEndY(car.sensor3.getIntersectionPointY(sensor3ClosetId));
 
 	}
-	
+
 	public void printCurrentThread() {
 		System.out.println("************************");
 		System.out.println(Thread.currentThread());
 		System.out.println("************************");
 
 	}
-	
-	public void sensorLinesSetting(){
+
+	public void sensorLinesSetting() {
 		sensorLine1 = new Line();
 		sensorLine1.setStartX(car.getCenterX());
 		sensorLine1.setStartY(car.getCenterY());
@@ -269,16 +175,16 @@ public class cihw2 extends Application {
 		sensorLine3.startXProperty().bind(car.centerXProperty());
 		sensorLine3.startYProperty().bind(car.centerYProperty());
 		sensorLine3.setStroke(Color.DARKGREEN);
-		
+
 		sensorLine1.setVisible(true);
 		sensorLine2.setVisible(true);
 		sensorLine3.setVisible(true);
-		
+
 		canvasPane.getChildren().addAll(sensorLine1, sensorLine2, sensorLine3);
 
 	}
 
-	public void inputFileChoose(String[] args , Button loadFile) throws IOException {
+	public void inputFileChoose(String[] args, Button loadFile) throws IOException {
 		/*
 		 * show a file stage for choose file
 		 */
@@ -320,7 +226,7 @@ public class cihw2 extends Application {
 		}
 		fr.close();// 關閉檔案
 	}
-	
+
 	public void printArrayData(ArrayList<float[]> showArray) {
 
 		for (int i = 0; i < showArray.size(); i++) {
@@ -332,7 +238,6 @@ public class cihw2 extends Application {
 		System.out.println("");
 	}
 
-	
 	public static void main(String[] args) {
 		launch(args);
 	}

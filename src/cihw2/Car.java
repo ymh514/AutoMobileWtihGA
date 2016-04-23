@@ -1,5 +1,7 @@
 package cihw2;
 
+import java.util.ArrayList;
+
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
@@ -15,7 +17,7 @@ public class Car extends Circle {
 	protected double angle = 90;
 	protected double turnAngle = 40;
 	protected Fuzzy fuzzy;
-	
+	public ArrayList<double[]> tempArray = new ArrayList<double[]>();
 
 	public Car(Canvas canvasPane){
 		this.canvasPane = canvasPane;
@@ -39,7 +41,17 @@ public class Car extends Circle {
 	}
 
 	public void tuneCar(Canvas canvasPane){
-
+		
+		double x = this.getCenterX()/ratio-startPointX;
+		double y = -1*(this.getCenterY()/ratio-startPointY);
+		double[] temp = {0,0};
+		temp[0] = x;
+		temp[1] = y;
+		System.out.println("car x :"+x+" y :"+y);
+		tempArray.add(temp);
+		
+		
+		
 		// Calculate turn angle 
 		turnAngle = fuzzy.getTurnAngle();
 		
@@ -125,6 +137,8 @@ public class Car extends Circle {
 		canvasPane.getChildren().add(path);
 
 	}
+
+	
 	public void finalTune(){
 
 		// Just move 
