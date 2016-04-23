@@ -17,7 +17,7 @@ public class Car extends Circle {
 	protected double angle = 90;
 	protected double turnAngle = 40;
 	protected Fuzzy fuzzy;
-	public ArrayList<double[]> tempArray = new ArrayList<double[]>();
+	public ArrayList<double[]> tempArray;
 
 	public Car(Canvas canvasPane){
 		this.canvasPane = canvasPane;
@@ -37,7 +37,7 @@ public class Car extends Circle {
 	
 		// Set fuzzy 
 		fuzzy = new Fuzzy(sensor1, sensor2, sensor3, angle);
-		
+		tempArray = new ArrayList<double[]>();
 	}
 
 	public void tuneCar(Canvas canvasPane){

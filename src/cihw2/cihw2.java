@@ -29,21 +29,15 @@ import javafx.stage.Stage;
 
 public class cihw2 extends Application {
 
-	private Canvas canvasPane = new Canvas();
-	private Car car = new Car(this.canvasPane);
+	private Canvas canvasPane;
+	private Car car;
 	private Line sensorLine1;
 	private Line sensorLine2;
 	private Line sensorLine3;
-	private Label line1Dist = new Label("Red");
-	private Label line2Dist = new Label("Blue");
-	private Label line3Dist = new Label("Green");
-	private Label angleInfo = new Label("");
-	private int finalFlag = 0;
-	private double initialAngleValue = 90;
 	private double startPointX = 30;
 	private double startPointY = 52;
 	private int ratio = 10;
-	public ArrayList<float[]> inputArray = new ArrayList<float[]>();
+	public ArrayList<float[]> inputArray;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -53,11 +47,16 @@ public class cihw2 extends Application {
 		/*
 		 * Initial setting
 		 */
+		inputArray = new ArrayList<float[]>();
+		canvasPane = new Canvas();
+		car = new Car(this.canvasPane);
+		
 		BorderPane ciPane = new BorderPane();
 		VBox infoBox = new VBox(10);
 		Button loadFile = new Button("Load File");
+		Button reset = new Button("Reset");
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
-		infoBox.getChildren().addAll(loadFile);
+		infoBox.getChildren().addAll(loadFile,reset);
 		canvasPane.getChildren().add(car);
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
@@ -78,6 +77,12 @@ public class cihw2 extends Application {
 			drawPath(inputArray);
 		});
 
+		reset.setOnMouseClicked(event ->{
+			canvasPane.rePaint();
+			loadFile.setText("Load File");
+			inputArray.clear();
+		});
+		
 		canvasPane.setOnMouseClicked(event -> {
 
 			car.initialSetCar(event.getX(), event.getY());
@@ -95,7 +100,6 @@ public class cihw2 extends Application {
 
 	public void drawPath(ArrayList<float[]> showArray) {
 		for (int i = 0; i < showArray.size(); i++) {
-			// for(int j=0;j<showArray.get(i).length;j++){
 			Circle path = new Circle();
 			path.setCenterX(startPointX * ratio + showArray.get(i)[0] * ratio);
 			path.setCenterY(startPointY * ratio + showArray.get(i)[1] * -ratio);
@@ -104,7 +108,6 @@ public class cihw2 extends Application {
 			path.setFill(Color.DARKGRAY);
 			canvasPane.getChildren().add(path);
 
-			// }
 		}
 	}
 
@@ -122,10 +125,11 @@ public class cihw2 extends Application {
 		car.sensor3.calDistance(canvasPane);
 
 		// Set showing information
-//		line1Dist.setText("Red Line :" + car.sensor1.getDist());
-//		line2Dist.setText("Blue Line :" + car.sensor2.getDist());
-//		line3Dist.setText("Green Line :" + car.sensor3.getDist());
-//		angleInfo.setText("Angle with x-axis : " + Math.round(car.angle * 1000.0) / 1000.0 + "º");
+		// line1Dist.setText("Red Line :" + car.sensor1.getDist());
+		// line2Dist.setText("Blue Line :" + car.sensor2.getDist());
+		// line3Dist.setText("Green Line :" + car.sensor3.getDist());
+		// angleInfo.setText("Angle with x-axis : " + Math.round(car.angle *
+		// 1000.0) / 1000.0 + "º");
 
 		// Set sensor lines
 		int sensor1ClosetId = car.sensor1.getClosestLineId();

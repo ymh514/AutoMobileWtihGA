@@ -180,4 +180,5 @@ public class Canvas extends Pane{
 		line8.setStrokeWidth(3);
 		this.getChildren().add(line8);
 	}
+	
 }
