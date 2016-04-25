@@ -5,12 +5,13 @@ import java.util.ArrayList;
 
 public class Gene {
 	private int neuronNumber = 3;
+	private double theta[];
 	private double[] weight;
 	private double[] fi;
 	private double[] sigma;
-	private double theta[];
 	private ArrayList<double[]> mean;
 	private ArrayList<double[]> geneInfo;
+	private double fitnessValue;
 	// 0:theta 1:weight 2:mean 3:sigma
 	public Gene() {
 		this.geneInfo = new ArrayList<double[]>();
@@ -36,6 +37,12 @@ public class Gene {
 
 	}
 
+	public double getFitnessValue(){
+		return this.fitnessValue;
+	}
+	public void setFitnessValue(double input){
+		this.fitnessValue = input;
+	}
 	public double calOutput(double[] distanceInput) {
 
 		for (int i = 0; i < fi.length; i++) {
