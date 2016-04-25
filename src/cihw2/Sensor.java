@@ -141,7 +141,7 @@ public class Sensor {
 			}
 		}
 		if(smallestId == 7){
-			smallestDist = 1000;
+			smallestDist = 300;
 		}
 		this.closestLineId = smallestId;
 		this.closestLineDist = smallestDist;

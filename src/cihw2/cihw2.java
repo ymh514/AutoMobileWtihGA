@@ -46,6 +46,9 @@ public class cihw2 extends Application {
 	private ArrayList<ArrayList<double[]>> pool;
 	private int iteration;
 	private double avgError;
+	private int bstErrorNo;
+	private double bstErrorValue;
+	private double errorLimit = 0.03;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -69,10 +72,10 @@ public class cihw2 extends Application {
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
-		TextField looptimesText = new TextField("10000");
-		TextField groupSizeText = new TextField("40");
+		TextField looptimesText = new TextField("50000");
+		TextField groupSizeText = new TextField("100");
 		TextField crossoverProbText = new TextField("0.5");
-		TextField mutationProbText = new TextField("0.333");
+		TextField mutationProbText = new TextField("0.2");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
@@ -123,12 +126,19 @@ public class cihw2 extends Application {
 
 			while (true) {
 
-				double[] error = new double[geneArray.size()];
-				double[] avgErrorTempArray = new double[geneArray.size()];
+				double[] errorArray = new double[geneArray.size()];
+				double[] bstError = new double[geneArray.size()];
+				ArrayList<double[]> avgErrorArray = new ArrayList<double[]>();
+
+				bstErrorNo = 0;
+				bstErrorValue = Double.MAX_VALUE;
+				
 				geneInfoArray = new ArrayList<ArrayList<double[]>>();
 				avgError = 0;
 
 				for (int i = 0; i < geneArray.size(); i++) {
+					double bstv = 0;
+
 					for (int j = 0; j < inputArray.size(); j++) {
 						double[] distance = new double[3];
 						double desire = inputArray.get(j)[inputArray.get(j).length - 1];
@@ -138,16 +148,29 @@ public class cihw2 extends Application {
 						distance[2] = inputArray.get(j)[2];
 
 						double output = geneArray.get(i).calOutput(distance);
-//						System.out.println(output*80-40+" ");
 						double errorTemp = Math.pow((desire - output), 2);
-						double avgErrorTemp = Math.abs(desire - output);
-						avgErrorTempArray[i] += avgErrorTemp;
-						error[i] += errorTemp;
+						double avgETemp = Math.abs(desire - output);
+						bstv += avgETemp;
+						errorArray[i] += errorTemp;
 					}
-//					System.out.println("------------");
-					error[i] /= 2;
+					bstError[i] = bstv;
+
+					errorArray[i] /= 2;
 					geneInfoArray.add(geneArray.get(i).getGeneInfo());
 				}
+
+				for(int i=0;i<bstError.length;i++){
+					if(bstError[i] < bstErrorValue){
+						bstErrorValue = bstError[i];
+						bstErrorNo = i;
+					}
+				}
+				double tt = bstError[bstErrorNo];
+//				for(int i=0;i<bstError[bstErrorNo];i++){
+//					tt += avgErrorArray.get(bstErrorNo)[i];
+//				}
+				tt /= bstError.length;
+				System.out.println(" avg : "+tt);
 
 //				for (int i = 0; i < avgErrorTempArray.length; i++) {
 //					avgError += avgErrorTempArray[i];
@@ -156,33 +179,33 @@ public class cihw2 extends Application {
 //				avgError = avgError / avgErrorTempArray.length;
 //				System.out.println(iteration+" avg : "+avgError);
 				
-				for (int i = 0; i < error.length; i++) {
-					avgError += error[i];
+				for (int i = 0; i < errorArray.length; i++) {
+					avgError += errorArray[i];
 				}
-				avgError = avgError / avgErrorTempArray.length;
-				System.out.println(iteration+" rmse : "+avgError);
+				avgError = tt;
+				System.out.println(iteration+" rmse : "+avgError + "best no :"+bstErrorNo+" value : "+bstErrorValue);
 
 				double errorTotal = 0;
-				for (int i = 0; i < error.length; i++) {
+				for (int i = 0; i < errorArray.length; i++) {
 //					System.out.println("error : " + error[i]);
-					errorTotal += error[i];
+					errorTotal += errorArray[i];
 				}
 				
 				System.out.println("------------------------------");
 				
 				double newTotal = 0;
-				for (int i = 0; i < error.length; i++) {
-					error[i] = Math.abs(error[i] - errorTotal);
-					newTotal += error[i];
+				for (int i = 0; i < errorArray.length; i++) {
+					errorArray[i] = Math.abs(errorArray[i] - errorTotal);
+					newTotal += errorArray[i];
 					// System.out.println("new error : " + error[i]);
 				}
-				for (int i = 0; i < error.length; i++) {
-					error[i] /= newTotal;
+				for (int i = 0; i < errorArray.length; i++) {
+					errorArray[i] /= newTotal;
 					// System.out.println("normal error : " + error[i]);
 
 				}
 
-				reproduction(error);
+				reproduction(errorArray);
 
 				crossover();
 
@@ -201,16 +224,13 @@ public class cihw2 extends Application {
 					System.out.println("looptimes break loop");
 					break;
 				}
-				if(avgError < 1){
+				if(avgError < errorLimit){
 					System.out.println("good error break");
 					break;
 				}
 
 				iteration++;
 			}
-			
-			
-
 		});
 
 		go.setOnMouseClicked(event ->{
@@ -228,7 +248,7 @@ public class cihw2 extends Application {
 									// The function for the final round
 
 										// Tune car's position and angle
-										car.tuneCar(canvasPane,geneArray);
+										car.tuneCar(canvasPane,geneArray,bstErrorNo);
 										initialSetSensorsLine();
 
 								}
