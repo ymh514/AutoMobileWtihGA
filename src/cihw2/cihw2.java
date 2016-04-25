@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Random;
 
 import cihw2.Canvas;
 import cihw2.Gene;
@@ -39,7 +41,11 @@ public class cihw2 extends Application {
 	private int groupSize;
 	private double crossoverProb;
 	private double mutationProb;
-	
+	private ArrayList<ArrayList<double[]>> geneInfoArray;
+	private ArrayList<ArrayList<double[]>> pool;
+	private int iteration;
+	private double avgError;
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
@@ -62,13 +68,13 @@ public class cihw2 extends Application {
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
 		TextField looptimesText = new TextField("100");
-		TextField groupSizeText = new TextField("2000");
-		TextField crossoverProbText = new TextField("0.6");
+		TextField groupSizeText = new TextField("4");
+		TextField crossoverProbText = new TextField("0.5");
 		TextField mutationProbText = new TextField("0.333");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
-		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText, crossoverProbLabel,
-				crossoverProbText, mutationProbLabel, mutationProbText,start);
+		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
+				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start);
 		canvasPane.getChildren().add(car);
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
@@ -87,55 +93,126 @@ public class cihw2 extends Application {
 				// TODO Auto-generated catch block
 				System.out.println("Cancel");
 				e.printStackTrace();
+
 			}
 			inputDataNormalize();
-			//drawPath(inputArray);
+			// drawPath(inputArray);
 		});
-		
-		start.setOnMouseClicked(event ->{
-			
+
+		start.setOnMouseClicked(event -> {
+			iteration = 0;
+			avgError = Double.MAX_VALUE;
+
+			geneInfoArray = new ArrayList<ArrayList<double[]>>();
+			pool = new ArrayList<ArrayList<double[]>>();
+
 			this.looptimes = Integer.parseInt(looptimesText.getText());
 			this.groupSize = Integer.parseInt(groupSizeText.getText());
 			this.crossoverProb = Double.parseDouble(crossoverProbText.getText());
 			this.mutationProb = Double.parseDouble(mutationProbText.getText());
-						
+
 			// generate gene
 			geneArray = new ArrayList<Gene>();
-			
-			for(int i=0;i<groupSize;i++){
+
+			for (int i = 0; i < groupSize; i++) {
 				Gene tempGene = new Gene();
 				geneArray.add(tempGene);
 			}
-			
-			for(int i=0;i<geneArray.size();i++){
-				for(int j=0;j<inputArray.size();j++){
-					double[] distance = new double[3];
-					double desire = inputArray.get(j)[inputArray.get(j).length-1];
-					
-					distance[0] = inputArray.get(j)[0];
-					distance[1] = inputArray.get(j)[1];
-					distance[2] = inputArray.get(j)[2];
-					double temp = geneArray.get(i).calOutput(distance, desire);
+
+			while (true) {
+
+				double[] error = new double[geneArray.size()];
+				double[] avgErrorTempArray = new double[geneArray.size()];
+				geneInfoArray = new ArrayList<ArrayList<double[]>>();
+				avgError = 0;
+
+				for (int i = 0; i < geneArray.size(); i++) {
+					for (int j = 0; j < inputArray.size(); j++) {
+						double[] distance = new double[3];
+						double desire = inputArray.get(j)[inputArray.get(j).length - 1];
+
+						distance[0] = inputArray.get(j)[0];
+						distance[1] = inputArray.get(j)[1];
+						distance[2] = inputArray.get(j)[2];
+
+						double output = geneArray.get(i).calOutput(distance, desire);
+//						System.out.println(output*80-40+" ");
+						double errorTemp = Math.pow((desire - output), 2);
+						double avgErrorTemp = Math.abs(desire - output);
+						avgErrorTempArray[i] += avgErrorTemp;
+						error[i] += errorTemp;
+					}
+//					System.out.println("------------");
+					error[i] /= 2;
+					geneInfoArray.add(geneArray.get(i).getGeneInfo());
+				}
+
+				for (int i = 0; i < avgErrorTempArray.length; i++) {
+					avgError += avgErrorTempArray[i];
+				}
+				
+				avgError = avgError / avgErrorTempArray.length;
+//				System.out.println(iteration+" avg : "+avgError);
+				
+				double errorTotal = 0;
+				for (int i = 0; i < error.length; i++) {
+					System.out.println("error : " + error[i]);
+					errorTotal += error[i];
+				}
+				
+				System.out.println("------------------------------");
+				
+				double newTotal = 0;
+				for (int i = 0; i < error.length; i++) {
+					error[i] = Math.abs(error[i] - errorTotal);
+					newTotal += error[i];
+					// System.out.println("new error : " + error[i]);
+				}
+				for (int i = 0; i < error.length; i++) {
+					error[i] /= newTotal;
+					// System.out.println("normal error : " + error[i]);
 
 				}
-			}
-			
-			for(int i=0;i<inputArray.size();i++){
-				double[] distance = new double[3];
-				double desire = inputArray.get(i)[inputArray.get(i).length-1];
-				
-				distance[0] = inputArray.get(i)[0];
-				distance[1] = inputArray.get(i)[1];
-				distance[2] = inputArray.get(i)[2];
-				
-				for(int j=0;j<geneArray.size();j++){
-					geneArray.get(j).calOutput(distance, desire);
 
+				reproduction(error);
+
+				crossover();
+
+				mutation();
+
+				for(int i=0;i<geneArray.size();i++){
+//					System.out.println("-----------------");
+//					System.out.println(geneArray.size());
+//					System.out.println(geneInfoArray.size());
+//					System.out.println("-----------------");
+
+					geneArray.get(i).updateGeneInfo(geneInfoArray.get(i));
 				}
+				
+				if (iteration > looptimes) {
+					System.out.println("looptimes break loop");
+					break;
+				}
+				if(avgError < 0.2){
+					System.out.println("good error break");
+					break;
+				}
+
+				iteration++;
 			}
-			
+
+//			System.out.println("done=============");
+//			for (int i = 0; i < pool.size(); i++) {
+//				for (int j = 0; j < pool.get(i).size(); j++) {
+//					for (int k = 0; k < pool.get(i).get(j).length; k++) {
+//						System.out.print(pool.get(i).get(j)[k] + " ");
+//					}
+//				}
+//				System.out.println("");
+//			}
+
 		});
-		
+
 		reset.setOnMouseClicked(event -> {
 			canvasPane.rePaint();
 			loadFile.setText("Load File");
@@ -154,6 +231,230 @@ public class cihw2 extends Application {
 
 	}
 
+	public void reproduction(double[] normalError) {
+		
+		pool = new ArrayList<ArrayList<double[]>>();
+		
+		double[] boundary = new double[normalError.length + 1];
+		boundary[0] = 0;
+		for (int i = 0; i < normalError.length; i++) {
+			int boundaryCount = i + 1;
+			if (i == normalError.length - 1) {
+				boundary[boundaryCount] = 1;
+			} else {
+				boundary[boundaryCount] = boundary[i] + normalError[i];
+			}
+		}
+//		 for (int i = 0; i < boundary.length; i++) {
+//			 System.out.println("boundary" + i + " : " + boundary[i]);
+//		 }
+//		System.out.println(iteration + " geneInfoArray "+geneInfoArray.size());
+
+		for (int i = 0; i < geneInfoArray.size(); i++) {
+			double rand = Math.random();
+			int reproductionNo = 0;
+//			 System.out.println("rand:" + rand);
+			for (int j = 0; j < boundary.length - 1; j++) {
+				if (rand >= boundary[j] && rand < boundary[j + 1]) {
+					reproductionNo = j;
+//					 System.out.println("region :" + j);
+				}
+			}
+
+			pool.add(geneInfoArray.get(reproductionNo));
+		}
+
+		for (int i = 0; i < pool.size(); i++) {
+			for (int j = 0; j < pool.get(i).size(); j++) {
+				for (int k = 0; k < pool.get(i).get(j).length; k++) {
+					if (j == 0 || j == 1) {
+						Random rand = new Random();
+						double temp = 0;
+
+						if (Math.random() > 0.5) {
+							temp = (rand.nextFloat() + 0f) / 10;
+						} else {
+							temp = (rand.nextFloat() - 1f) / 10;
+						}
+						temp = (temp - iteration) / looptimes;
+
+						double judge = pool.get(i).get(j)[k] + temp;
+						if (judge > 1 || judge < -1) {
+							// complete reproduction
+						} else {
+							// add some noise
+							pool.get(i).get(j)[k] = judge;
+						}
+					} else if (j == 1) {
+						double judge = pool.get(i).get(j)[k] + ((Math.random() - iteration) / looptimes);
+						if (judge > 30 || judge < 0) {
+							// complete reproduction
+						} else {
+							// add some noise
+							pool.get(i).get(j)[k] = judge;
+						}
+
+					} else {
+						double judge = pool.get(i).get(j)[k] + ((Math.random() - iteration) / looptimes);
+						if (judge > 10 || judge < 0) {
+							// complete reproduction
+						} else {
+							// add some noise
+							pool.get(i).get(j)[k] = judge;
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+	public void crossover() {
+		// crossover
+		for (int i = 0; i < pool.size(); i++) {
+			int crossNo1 = i;
+			Random rand = new Random();
+			int crossNo2 = rand.nextInt(pool.size() - 1);
+			while (crossNo2 == crossNo1) {
+				crossNo2 = rand.nextInt(pool.size() - 1);
+			}
+
+			double distanceDef = Math.random();
+			double crossSigma = Math.random() / 1000;
+			double doCrossoverProb = Math.random();
+
+			if (doCrossoverProb < crossoverProb) {
+				// do crossover
+				if (distanceDef > 0.5) {
+					for (int j = 0; j < pool.get(crossNo1).size(); j++) {
+						for (int k = 0; k < pool.get(crossNo1).get(j).length; k++) {
+							double c1 = pool.get(crossNo1).get(j)[k];
+							double c2 = pool.get(crossNo2).get(j)[k];
+							double judge1 = c1 + crossSigma * (c1 - c2);
+							double judge2 = c2 - crossSigma * (c1 - c2);
+
+							if (j == 0 || j == 1) {
+								if (judge1 > 1 || judge1 < 0) {
+									// complete reproduction
+								} else {
+									// add some noise
+									pool.get(crossNo1).get(j)[k] = judge1;
+								}
+								if (judge2 > 1 || judge2 < 0) {
+								} else {
+									pool.get(crossNo2).get(j)[k] = judge2;
+								}
+							} else if (j == 2) {
+								if (judge1 > 30 || judge1 < 0) {
+								} else {
+									pool.get(crossNo1).get(j)[k] = judge1;
+								}
+								if (judge2 > 30 || judge2 < 0) {
+								} else {
+									pool.get(crossNo2).get(j)[k] = judge2;
+								}
+							} else {
+								if (judge1 > 10 || judge1 < 0) {
+								} else {
+									pool.get(crossNo1).get(j)[k] = judge1;
+								}
+								if (judge2 > 10 || judge2 < 0) {
+								} else {
+									pool.get(crossNo2).get(j)[k] = judge2;
+								}
+							}
+						}
+					}
+				} else {
+					for (int j = 0; j < pool.get(i).size(); j++) {
+						for (int k = 0; k < pool.get(i).get(j).length; k++) {
+							double c1 = pool.get(crossNo1).get(j)[k];
+							double c2 = pool.get(crossNo2).get(j)[k];
+							double judge1 = c1 + crossSigma * (c2 - c1);
+							double judge2 = c2 - crossSigma * (c2 - c1);
+
+							if (j == 0 || j == 1) {
+								if (judge1 > 1 || judge1 < 0) {
+								} else {
+									pool.get(crossNo1).get(j)[k] = judge1;
+								}
+								if (judge2 > 1 || judge2 < 0) {
+								} else {
+									pool.get(crossNo2).get(j)[k] = judge2;
+								}
+							} else if (j == 2) {
+								if (judge1 > 30 || judge1 < 0) {
+								} else {
+									pool.get(crossNo1).get(j)[k] = judge1;
+								}
+								if (judge2 > 30 || judge2 < 0) {
+								} else {
+									pool.get(crossNo2).get(j)[k] = judge2;
+								}
+							} else {
+								if (judge1 > 10 || judge1 < 0) {
+								} else {
+									pool.get(crossNo1).get(j)[k] = judge1;
+								}
+								if (judge2 > 10 || judge2 < 0) {
+								} else {
+									pool.get(crossNo2).get(j)[k] = judge2;
+								}
+
+							}
+						}
+					}
+				}
+			} else {
+				// donothing
+			}
+		}
+//		System.out.println("-----------------");
+//		System.out.println("pool:"+pool.size());
+//		System.out.println("-----------------");
+
+		geneInfoArray = pool;
+	}
+
+	public void mutation() {
+		// mutation
+		double doMutationProb = Math.random();
+		double s = Math.random() / 100;
+		double randomNois = Math.random() / 100;
+
+		if (doMutationProb < mutationProb) {
+
+			int mutationNo = (int)Math.random()*(geneInfoArray.size() - 1);
+			
+			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
+				for (int j = 0; j < geneInfoArray.get(mutationNo).get(i).length; j++) {
+					if (i == 0 || i == 1) {
+						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
+						if (judge > 1 || judge < 0) {
+						} else {
+							geneInfoArray.get(mutationNo).get(i)[j] = judge;
+						}
+					} else if (i == 2) {
+						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
+						if (judge > 30 || judge < 0) {
+						} else {
+							geneInfoArray.get(mutationNo).get(i)[j] = judge;
+						}
+					} else {
+						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
+						if (judge > 10 || judge < 0) {
+						} else {
+							geneInfoArray.get(mutationNo).get(i)[j] = judge;
+						}
+					}
+				}
+			}
+		} else {
+
+		}
+		
+	}
+
 	public void drawPath(ArrayList<float[]> showArray) {
 		for (int i = 0; i < showArray.size(); i++) {
 			Circle path = new Circle();
@@ -167,15 +468,15 @@ public class cihw2 extends Application {
 		}
 	}
 
-	public void inputDataNormalize(){
-		int desireNumer = inputArray.get(0).length-1;
-		for(int i=0;i<inputArray.size();i++){
+	public void inputDataNormalize() {
+		int desireNumer = inputArray.get(0).length - 1;
+		for (int i = 0; i < inputArray.size(); i++) {
 			double cal = inputArray.get(i)[desireNumer];
-			cal = (cal+40) / 80;
+			cal = (cal + 40) / 80;
 			inputArray.get(i)[desireNumer] = cal;
 		}
 	}
-	
+
 	public void initialSetSensorsLine() {
 		sensorLine1.setEndX(car.sensor1.getX());
 		sensorLine1.setEndY(car.sensor1.getY());
@@ -252,7 +553,7 @@ public class cihw2 extends Application {
 		canvasPane.getChildren().addAll(sensorLine1, sensorLine2, sensorLine3);
 
 	}
-	
+
 	public void inputFileChoose(String[] args, Button loadFile) throws IOException {
 		/*
 		 * show a file stage for choose file
@@ -261,7 +562,7 @@ public class cihw2 extends Application {
 		Stage fileStage = new Stage();
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Open Resource File");
-		fileChooser.setInitialDirectory(new File("src/"));
+		fileChooser.setInitialDirectory(new File("src/datasetWithoutPosition"));
 
 		File file = fileChooser.showOpenDialog(fileStage);
 		// System.out.println(file);
