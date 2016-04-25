@@ -12,6 +12,7 @@ import cihw2.Canvas;
 import cihw2.Gene;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -63,18 +64,19 @@ public class cihw2 extends Application {
 		Button loadFile = new Button("Load File");
 		Button reset = new Button("Reset");
 		Button start = new Button("Start");
+		Button go = new Button("Go");
 		Label looptimesLabel = new Label("Looptimes :");
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
-		TextField looptimesText = new TextField("100");
-		TextField groupSizeText = new TextField("4");
+		TextField looptimesText = new TextField("10000");
+		TextField groupSizeText = new TextField("40");
 		TextField crossoverProbText = new TextField("0.5");
 		TextField mutationProbText = new TextField("0.333");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
-				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start);
+				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start,go);
 		canvasPane.getChildren().add(car);
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
@@ -135,7 +137,7 @@ public class cihw2 extends Application {
 						distance[1] = inputArray.get(j)[1];
 						distance[2] = inputArray.get(j)[2];
 
-						double output = geneArray.get(i).calOutput(distance, desire);
+						double output = geneArray.get(i).calOutput(distance);
 //						System.out.println(output*80-40+" ");
 						double errorTemp = Math.pow((desire - output), 2);
 						double avgErrorTemp = Math.abs(desire - output);
@@ -147,16 +149,22 @@ public class cihw2 extends Application {
 					geneInfoArray.add(geneArray.get(i).getGeneInfo());
 				}
 
-				for (int i = 0; i < avgErrorTempArray.length; i++) {
-					avgError += avgErrorTempArray[i];
-				}
-				
-				avgError = avgError / avgErrorTempArray.length;
+//				for (int i = 0; i < avgErrorTempArray.length; i++) {
+//					avgError += avgErrorTempArray[i];
+//				}
+//				
+//				avgError = avgError / avgErrorTempArray.length;
 //				System.out.println(iteration+" avg : "+avgError);
 				
+				for (int i = 0; i < error.length; i++) {
+					avgError += error[i];
+				}
+				avgError = avgError / avgErrorTempArray.length;
+				System.out.println(iteration+" rmse : "+avgError);
+
 				double errorTotal = 0;
 				for (int i = 0; i < error.length; i++) {
-					System.out.println("error : " + error[i]);
+//					System.out.println("error : " + error[i]);
 					errorTotal += error[i];
 				}
 				
@@ -193,26 +201,49 @@ public class cihw2 extends Application {
 					System.out.println("looptimes break loop");
 					break;
 				}
-				if(avgError < 0.2){
+				if(avgError < 1){
 					System.out.println("good error break");
 					break;
 				}
 
 				iteration++;
 			}
-
-//			System.out.println("done=============");
-//			for (int i = 0; i < pool.size(); i++) {
-//				for (int j = 0; j < pool.get(i).size(); j++) {
-//					for (int k = 0; k < pool.get(i).get(j).length; k++) {
-//						System.out.print(pool.get(i).get(j)[k] + " ");
-//					}
-//				}
-//				System.out.println("");
-//			}
+			
+			
 
 		});
 
+		go.setOnMouseClicked(event ->{
+			new Thread() {
+				public void run() {
+					while (true) {
+						try {
+							// Main thread sleep
+							Thread.sleep(100);
+
+							Platform.runLater(new Runnable() {
+								// GUI update by javafx thread
+								@Override
+								public void run() {
+									// The function for the final round
+
+										// Tune car's position and angle
+										car.tuneCar(canvasPane,geneArray);
+										initialSetSensorsLine();
+
+								}
+							});
+
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			}.start();
+
+
+		});
 		reset.setOnMouseClicked(event -> {
 			canvasPane.rePaint();
 			loadFile.setText("Load File");
@@ -276,7 +307,7 @@ public class cihw2 extends Application {
 						} else {
 							temp = (rand.nextFloat() - 1f) / 10;
 						}
-						temp = (temp - iteration) / looptimes;
+//						temp = (temp - iteration) / looptimes;
 
 						double judge = pool.get(i).get(j)[k] + temp;
 						if (judge > 1 || judge < -1) {
@@ -286,7 +317,7 @@ public class cihw2 extends Application {
 							pool.get(i).get(j)[k] = judge;
 						}
 					} else if (j == 1) {
-						double judge = pool.get(i).get(j)[k] + ((Math.random() - iteration) / looptimes);
+						double judge = pool.get(i).get(j)[k] + Math.random();
 						if (judge > 30 || judge < 0) {
 							// complete reproduction
 						} else {
@@ -295,7 +326,7 @@ public class cihw2 extends Application {
 						}
 
 					} else {
-						double judge = pool.get(i).get(j)[k] + ((Math.random() - iteration) / looptimes);
+						double judge = pool.get(i).get(j)[k] + Math.random();
 						if (judge > 10 || judge < 0) {
 							// complete reproduction
 						} else {
@@ -311,6 +342,7 @@ public class cihw2 extends Application {
 
 	public void crossover() {
 		// crossover
+//		int crossNo1 = (int)Math.random()*(pool.size() - 1);
 		for (int i = 0; i < pool.size(); i++) {
 			int crossNo1 = i;
 			Random rand = new Random();
@@ -366,8 +398,8 @@ public class cihw2 extends Application {
 						}
 					}
 				} else {
-					for (int j = 0; j < pool.get(i).size(); j++) {
-						for (int k = 0; k < pool.get(i).get(j).length; k++) {
+					for (int j = 0; j < pool.get(crossNo1).size(); j++) {
+						for (int k = 0; k < pool.get(crossNo1).get(j).length; k++) {
 							double c1 = pool.get(crossNo1).get(j)[k];
 							double c2 = pool.get(crossNo2).get(j)[k];
 							double judge1 = c1 + crossSigma * (c2 - c1);
@@ -409,6 +441,8 @@ public class cihw2 extends Application {
 				// donothing
 			}
 		}
+		
+		
 //		System.out.println("-----------------");
 //		System.out.println("pool:"+pool.size());
 //		System.out.println("-----------------");

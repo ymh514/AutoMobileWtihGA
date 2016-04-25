@@ -40,7 +40,7 @@ public class Car extends Circle {
 		tempArray = new ArrayList<double[]>();
 	}
 
-	public void tuneCar(Canvas canvasPane){
+	public void tuneCar(Canvas canvasPane,ArrayList<Gene> geneArray){
 		
 		double x = this.getCenterX()/ratio-startPointX;
 		double y = -1*(this.getCenterY()/ratio-startPointY);
@@ -53,7 +53,10 @@ public class Car extends Circle {
 		
 		
 		// Calculate turn angle 
-		turnAngle = fuzzy.getTurnAngle();
+		double[] distance = {Double.parseDouble(this.sensor1.getDist())/ratio,Double.parseDouble(this.sensor2.getDist())/ratio,Double.parseDouble(this.sensor3.getDist())/ratio};
+		turnAngle = geneArray.get(3).calOutput(distance);
+		turnAngle = (turnAngle+40)*80;
+		//turnAngle = fuzzy.getTurnAngle();
 		
 		// Tune car's coordinate
 		this.setCenterX(ratio*(this.getCenterX()/ratio+Math.cos(Math.toRadians(angle + turnAngle))+Math.sin(Math.toRadians(turnAngle))*Math.sin(Math.toRadians(angle))));

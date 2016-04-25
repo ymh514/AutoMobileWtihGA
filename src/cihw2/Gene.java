@@ -36,7 +36,7 @@ public class Gene {
 
 	}
 
-	public double calOutput(double[] distanceInput, double desire) {
+	public double calOutput(double[] distanceInput) {
 
 		for (int i = 0; i < fi.length; i++) {
 			if(i == 0){ // fi0 = 1
