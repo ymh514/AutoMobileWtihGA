@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import cihw2.Canvas;
+import cihw2.Gene;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -19,6 +21,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -37,8 +40,9 @@ public class cihw2 extends Application {
 	private double startPointX = 30;
 	private double startPointY = 52;
 	private int ratio = 10;
-	public ArrayList<float[]> inputArray;
-
+	public ArrayList<double[]> inputArray;
+	private ArrayList<Gene> geneArray;
+	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
@@ -47,16 +51,26 @@ public class cihw2 extends Application {
 		/*
 		 * Initial setting
 		 */
-		inputArray = new ArrayList<float[]>();
+		inputArray = new ArrayList<double[]>();
 		canvasPane = new Canvas();
 		car = new Car(this.canvasPane);
-		
+
 		BorderPane ciPane = new BorderPane();
 		VBox infoBox = new VBox(10);
 		Button loadFile = new Button("Load File");
 		Button reset = new Button("Reset");
+		Label looptimes = new Label("Looptimes :");
+		Label groupSize = new Label("Group size :");
+		Label crossoverProb = new Label("Crossover Probability");
+		Label mutationProb = new Label("Mutation Probability");
+		TextField looptimesText = new TextField("100");
+		TextField groupSizeText = new TextField("2000");
+		TextField crossoverProbText = new TextField("0.6");
+		TextField mutationProbText = new TextField("0.333");
+
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
-		infoBox.getChildren().addAll(loadFile,reset);
+		infoBox.getChildren().addAll(loadFile, reset, looptimes, looptimesText, groupSize, groupSizeText, crossoverProb,
+				crossoverProbText, mutationProb, mutationProbText);
 		canvasPane.getChildren().add(car);
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
@@ -68,21 +82,26 @@ public class cihw2 extends Application {
 		sensorLinesSetting();
 
 		loadFile.setOnMouseClicked(event -> {
+			inputArray.clear();
 			try {
 				inputFileChoose(null, loadFile);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
+				System.out.println("Cancel");
 				e.printStackTrace();
 			}
-			drawPath(inputArray);
+			
+			
+			
+			//drawPath(inputArray);
 		});
 
-		reset.setOnMouseClicked(event ->{
+		reset.setOnMouseClicked(event -> {
 			canvasPane.rePaint();
 			loadFile.setText("Load File");
 			inputArray.clear();
 		});
-		
+
 		canvasPane.setOnMouseClicked(event -> {
 
 			car.initialSetCar(event.getX(), event.getY());
@@ -188,6 +207,14 @@ public class cihw2 extends Application {
 
 	}
 
+	public double calGaussianBasis(double x,double m,double sigma){
+		double returnValue = 0;
+		double abs = Math.abs(x-m);
+		abs = abs*abs;
+		returnValue = Math.exp((-1*abs)/(2*sigma*sigma));
+		return returnValue;
+	}
+	
 	public void inputFileChoose(String[] args, Button loadFile) throws IOException {
 		/*
 		 * show a file stage for choose file
@@ -196,7 +223,7 @@ public class cihw2 extends Application {
 		Stage fileStage = new Stage();
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Open Resource File");
-		fileChooser.setInitialDirectory(new File("src/datasetWithPosition"));
+		fileChooser.setInitialDirectory(new File("src/"));
 
 		File file = fileChooser.showOpenDialog(fileStage);
 		// System.out.println(file);
@@ -217,7 +244,7 @@ public class cihw2 extends Application {
 			 */
 			String[] token = txt.trim().split("\\s+");// <-----背起來
 			// String[] token = txt.split(" ");//<-----original split
-			float[] token2 = new float[token.length];// 宣告float[]
+			double[] token2 = new double[token.length];// 宣告float[]
 
 			try {
 				for (int i = 0; i < token.length; i++) {
@@ -231,7 +258,7 @@ public class cihw2 extends Application {
 		fr.close();// 關閉檔案
 	}
 
-	public void printArrayData(ArrayList<float[]> showArray) {
+	public void printArrayData(ArrayList<double[]> showArray) {
 
 		for (int i = 0; i < showArray.size(); i++) {
 			for (int j = 0; j < showArray.get(i).length; j++) {
