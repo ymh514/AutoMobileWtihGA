@@ -1,10 +1,8 @@
 package cihw2;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -12,15 +10,10 @@ import cihw2.Canvas;
 import cihw2.Gene;
 
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -42,6 +35,10 @@ public class cihw2 extends Application {
 	private int ratio = 10;
 	public ArrayList<double[]> inputArray;
 	private ArrayList<Gene> geneArray;
+	private int looptimes;
+	private int groupSize;
+	private double crossoverProb;
+	private double mutationProb;
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -59,18 +56,19 @@ public class cihw2 extends Application {
 		VBox infoBox = new VBox(10);
 		Button loadFile = new Button("Load File");
 		Button reset = new Button("Reset");
-		Label looptimes = new Label("Looptimes :");
-		Label groupSize = new Label("Group size :");
-		Label crossoverProb = new Label("Crossover Probability");
-		Label mutationProb = new Label("Mutation Probability");
+		Button start = new Button("Start");
+		Label looptimesLabel = new Label("Looptimes :");
+		Label groupSizeLabel = new Label("Group size :");
+		Label crossoverProbLabel = new Label("Crossover Probability");
+		Label mutationProbLabel = new Label("Mutation Probability");
 		TextField looptimesText = new TextField("100");
 		TextField groupSizeText = new TextField("2000");
 		TextField crossoverProbText = new TextField("0.6");
 		TextField mutationProbText = new TextField("0.333");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
-		infoBox.getChildren().addAll(loadFile, reset, looptimes, looptimesText, groupSize, groupSizeText, crossoverProb,
-				crossoverProbText, mutationProb, mutationProbText);
+		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText, crossoverProbLabel,
+				crossoverProbText, mutationProbLabel, mutationProbText,start);
 		canvasPane.getChildren().add(car);
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
@@ -90,12 +88,54 @@ public class cihw2 extends Application {
 				System.out.println("Cancel");
 				e.printStackTrace();
 			}
-			
-			
-			
+			inputDataNormalize();
 			//drawPath(inputArray);
 		});
+		
+		start.setOnMouseClicked(event ->{
+			
+			this.looptimes = Integer.parseInt(looptimesText.getText());
+			this.groupSize = Integer.parseInt(groupSizeText.getText());
+			this.crossoverProb = Double.parseDouble(crossoverProbText.getText());
+			this.mutationProb = Double.parseDouble(mutationProbText.getText());
+						
+			// generate gene
+			geneArray = new ArrayList<Gene>();
+			
+			for(int i=0;i<groupSize;i++){
+				Gene tempGene = new Gene();
+				geneArray.add(tempGene);
+			}
+			
+			for(int i=0;i<geneArray.size();i++){
+				for(int j=0;j<inputArray.size();j++){
+					double[] distance = new double[3];
+					double desire = inputArray.get(j)[inputArray.get(j).length-1];
+					
+					distance[0] = inputArray.get(j)[0];
+					distance[1] = inputArray.get(j)[1];
+					distance[2] = inputArray.get(j)[2];
+					double temp = geneArray.get(i).calOutput(distance, desire);
 
+				}
+			}
+			
+			for(int i=0;i<inputArray.size();i++){
+				double[] distance = new double[3];
+				double desire = inputArray.get(i)[inputArray.get(i).length-1];
+				
+				distance[0] = inputArray.get(i)[0];
+				distance[1] = inputArray.get(i)[1];
+				distance[2] = inputArray.get(i)[2];
+				
+				for(int j=0;j<geneArray.size();j++){
+					geneArray.get(j).calOutput(distance, desire);
+
+				}
+			}
+			
+		});
+		
 		reset.setOnMouseClicked(event -> {
 			canvasPane.rePaint();
 			loadFile.setText("Load File");
@@ -103,11 +143,8 @@ public class cihw2 extends Application {
 		});
 
 		canvasPane.setOnMouseClicked(event -> {
-
 			car.initialSetCar(event.getX(), event.getY());
-
 			initialSetSensorsLine();
-
 		});
 
 		Scene primaryScene = new Scene(ciPane);
@@ -130,6 +167,15 @@ public class cihw2 extends Application {
 		}
 	}
 
+	public void inputDataNormalize(){
+		int desireNumer = inputArray.get(0).length-1;
+		for(int i=0;i<inputArray.size();i++){
+			double cal = inputArray.get(i)[desireNumer];
+			cal = (cal+40) / 80;
+			inputArray.get(i)[desireNumer] = cal;
+		}
+	}
+	
 	public void initialSetSensorsLine() {
 		sensorLine1.setEndX(car.sensor1.getX());
 		sensorLine1.setEndY(car.sensor1.getY());
@@ -205,14 +251,6 @@ public class cihw2 extends Application {
 
 		canvasPane.getChildren().addAll(sensorLine1, sensorLine2, sensorLine3);
 
-	}
-
-	public double calGaussianBasis(double x,double m,double sigma){
-		double returnValue = 0;
-		double abs = Math.abs(x-m);
-		abs = abs*abs;
-		returnValue = Math.exp((-1*abs)/(2*sigma*sigma));
-		return returnValue;
 	}
 	
 	public void inputFileChoose(String[] args, Button loadFile) throws IOException {
