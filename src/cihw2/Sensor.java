@@ -2,6 +2,7 @@ package cihw2;
 
 import java.util.ArrayList;
 
+import cihw2.Canvas;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
 
@@ -14,6 +15,7 @@ public class Sensor {
 	private int closestLineId;
 	private double closestLineDist;
 	private Point2D[] lineIntersection = new Point2D[8];
+	private int ratio = 10;
 
 	public Sensor(double x, double y, double carX, double carY) {
 		this.x = x;
@@ -57,10 +59,10 @@ public class Sensor {
 
 	public void findIntersection(ArrayList<Line> tempLine, double[] tempDist, int i) {
 
-		double startX = tempLine.get(i).getStartX();
-		double startY = tempLine.get(i).getStartY();
-		double endX = tempLine.get(i).getEndX();
-		double endY = tempLine.get(i).getEndY();
+		double startX = transBackX(tempLine.get(i).getStartX());
+		double startY = transBackY(tempLine.get(i).getStartY());
+		double endX = transBackX(tempLine.get(i).getEndX());
+		double endY = transBackY(tempLine.get(i).getEndY());
 
 		double intersectionX = ((this.carX - this.getX()) * (startX * endY - endX * startY)
 				- (startX - endX) * (this.carX * this.getY() - this.getX() * this.carY))
@@ -87,11 +89,11 @@ public class Sensor {
 			if (ans > 0) {
 				tempDist[i] = Math.sqrt(a * a + b * b);
 			} else {
-				tempDist[i] = Double.MAX_VALUE;
+				tempDist[i] = 60;
 			}
 
 		} else {
-			tempDist[i] = Double.MAX_VALUE;
+			tempDist[i] = 60;
 		}
 
 	}
@@ -99,7 +101,7 @@ public class Sensor {
 	public int checkLineRange(double lineSX, double lineEX, double lineSY, double lineEY, double x, double y) {
 
 		if (lineSX == lineEX) {
-			if (y <= lineSY && y >= lineEY) {
+			if (y <= lineEY && y >= lineSY) {
 				return 1;
 			} else {
 				return -1;
@@ -141,7 +143,7 @@ public class Sensor {
 			}
 		}
 		if(smallestId == 7){
-			smallestDist = 300;
+			smallestDist = 30;
 		}
 		this.closestLineId = smallestId;
 		this.closestLineDist = smallestDist;
@@ -163,6 +165,23 @@ public class Sensor {
 	public String getDist() {
 		String distInfo = " "+Math.round(this.closestLineDist * 1000.0) / 1000.0;
 		return distInfo;
+	}
+	public double transToCanvasX(double x) {
+		double value = (x + 30) * ratio;
+		return value;
+	}
+
+	public double transToCanvasY(double y) {
+		double value = (-y + 52) * ratio;
+		return value;
+	}
+	public double transBackX(double x){
+		double value = (x /ratio)-30;
+		return value;
+	}
+	public double transBackY(double y){
+		double value = -1*((y /ratio)-52);
+		return value;
 	}
 
 }

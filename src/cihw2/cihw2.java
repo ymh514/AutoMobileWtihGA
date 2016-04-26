@@ -13,10 +13,13 @@ import cihw2.Gene;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -48,7 +51,15 @@ public class cihw2 extends Application {
 	private double avgError;
 	private int bstErrorNo;
 	private double bstErrorValue;
-	private double errorLimit = 0.05;
+	private double errorLimit = 0.02;
+	private int drawAcelerate = 300;
+	private double initialAngleValue = 90;
+	private Label line1Dist = new Label("Red");
+	private Label line2Dist = new Label("Blue");
+	private Label line3Dist = new Label("Green");
+	private Label angleInfo = new Label("");
+	static int aaa = 0 ;
+
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -72,23 +83,49 @@ public class cihw2 extends Application {
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
-		TextField looptimesText = new TextField("2000");
+		TextField looptimesText = new TextField("10000");
 		TextField groupSizeText = new TextField("2000");
 		TextField crossoverProbText = new TextField("0.6");
-		TextField mutationProbText = new TextField("0.03");
+		TextField mutationProbText = new TextField("0.05");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
-		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
-				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start, go);
 		canvasPane.getChildren().add(car);
+		Slider slider = new Slider();
+		slider.setPrefSize(180, 30);
+		slider.setMin(-270);
+		slider.setMax(90);
+		slider.setValue(90);
+		slider.setShowTickLabels(true);
+		slider.setShowTickMarks(true);
+		slider.setMajorTickUnit(50);
+		slider.setMinorTickCount(5);
+		slider.setBlockIncrement(10);
+		
+		Label initialAngle = new Label("Angle value : 90º");
+		Label initialAngleSign = new Label("Please slide to start angle :");
+
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
+		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
+				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start, go,initialAngleSign,slider,initialAngle, line3Dist, line1Dist, line2Dist, angleInfo);
 
 		/*
 		 * Set sensor lines
 		 */
 
 		sensorLinesSetting();
+		
+		slider.valueProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				// TODO Auto-generated method stub
+				initialAngle.setText("Angle value : "+Math.round((double)newValue * 100.0) / 100.0+"º");
+				initialAngleValue = (double) Math.round((double)newValue * 100.0) / 100.0;
+				car.angle = (double) newValue;
+				car.sliderTuneCar();
+				initialSetSensorsLine();
+			}
+        });
 
 		loadFile.setOnMouseClicked(event -> {
 			inputArray.clear();
@@ -235,7 +272,7 @@ public class cihw2 extends Application {
 					while (true) {
 						try {
 							// Main thread sleep
-							Thread.sleep(100);
+							Thread.sleep(drawAcelerate);
 
 							Platform.runLater(new Runnable() {
 								// GUI update by javafx thread
@@ -281,28 +318,176 @@ public class cihw2 extends Application {
 
 		pool = new ArrayList<ArrayList<double[]>>();
 
-
+		
 		// 競爭
-
 		for (int i = 0; i < geneArray.size(); i++) {
-			int r1 = i;
-			int r2 = (int) Math.random() * (geneArray.size() - 1);
-			if (r1 == r2) {
-				r2 = (int) Math.random() * (geneArray.size() - 1);
+			double rnd = Math.random();
+			if(rnd<0.8){
+				int r1 = i;
+				int r2 = (int) Math.random() * (geneArray.size() - 1);
+				if (r1 == r2) {
+					r2 = (int) Math.random() * (geneArray.size() - 1);
+				}
+
+				double rj1 = geneArray.get(r1).getFitnessValue();
+				double rj2 = geneArray.get(r2).getFitnessValue();
+				
+				double t = Math.random();
+				
+				double repNoise = 0.1;
+				
+				if(rj1>=rj2){
+					if (t < repNoise) {
+						for (int j = 0; j < geneInfoArray.get(r1).size(); j++) {
+							for (int k = 0; k < geneInfoArray.get(r1).get(j).length; k++) {
+								Random rand = new Random();
+								double temp = 0;
+		
+								if (Math.random() > 0.5) {
+									temp = (rand.nextFloat() + 0f);
+								} else {
+									temp = (rand.nextFloat() - 1f);
+								}
+		
+								temp /= iteration;
+								
+								if (j == 0 || j == 1) {
+		
+									double judge = geneInfoArray.get(r1).get(j)[k] + temp;
+									if (judge > 1 || judge < 0) {
+										// complete reproduction
+									} else {
+										// add some noise
+										geneInfoArray.get(r1).get(j)[k] = judge;
+									}
+								} else if (j == 1) {
+									double judge = geneInfoArray.get(r1).get(j)[k] + temp;
+									if (judge > 30 || judge < 0) {
+										// complete reproduction
+									} else {
+										// add some noise 
+										geneInfoArray.get(r1).get(j)[k] = judge;
+									}
+		
+								} else {
+									double judge = geneInfoArray.get(r1).get(j)[k] + temp;
+									if (judge > 10 || judge < 0) {
+										// complete reproduction
+									} else {
+										// add some noise
+										geneInfoArray.get(r1).get(j)[k] = judge;
+									}
+		
+								}
+							}
+						}
+					} 
+					else{
+						
+					}
+					pool.add(geneInfoArray.get(r1));
+
+				}	else{
+					
+					// for r2
+					
+					if (t < repNoise) {
+						for (int j = 0; j < geneInfoArray.get(r2).size(); j++) {
+							for (int k = 0; k < geneInfoArray.get(r2).get(j).length; k++) {
+								Random rand = new Random();
+								double temp = 0;
+		
+								if (Math.random() > 0.5) {
+									temp = (rand.nextFloat() + 0f);
+								} else {
+									temp = (rand.nextFloat() - 1f);
+								}
+		
+								temp /= iteration;
+								
+								if (j == 0 || j == 1) {
+		
+									double judge = geneInfoArray.get(r2).get(j)[k] + temp;
+									if (judge > 1 || judge < 0) {
+										// complete reproduction
+									} else {
+										// add some noise
+										geneInfoArray.get(r2).get(j)[k] = judge;
+									}
+								} else if (j == 1) {
+									double judge = geneInfoArray.get(r2).get(j)[k] + temp;
+									if (judge > 30 || judge < 0) {
+										// complete reproduction
+									} else {
+										// add some noise 
+										geneInfoArray.get(r2).get(j)[k] = judge;
+									}
+		
+								} else {
+									double judge = geneInfoArray.get(r2).get(j)[k] + temp;
+									if (judge > 10 || judge < 0) {
+										// complete reproduction
+									} else {
+										// add some noise
+										geneInfoArray.get(r2).get(j)[k] = judge;
+									}
+		
+								}
+							}
+						}
+					} 
+					else{
+						
+					}
+					pool.add(geneInfoArray.get(r2));
+
+				}
+
 			}
+			else{
+				// all new 
+				if(aaa == 0){
+					System.out.println("aaa " +geneInfoArray.get(1).size());
+					aaa =1 ;
+				}
+				ArrayList<double[]> tempArray = new ArrayList<double[]>();
+				int neuron = 3;
+				double[] weight = new double[neuron];
+				double[] theta = new double[1];
+				double[] sigma = new double[neuron]; 
+				double[] mean = new double[neuron*neuron];
+				theta[0] = Math.random();
+				
+				for (int a = 0; a < neuron; a++) {
+					weight[a] = Math.random();
+					
+					for (int b = 0; b < mean.length; b++) {
+						mean[b] = Math.random() * 30;
+					}
+					
+					sigma[a] = Math.random() * 10;
+				}
+				tempArray.add(theta);
+				tempArray.add(weight);
+				tempArray.add(mean);
+				tempArray.add(sigma);
+				
+//				int reproductionNo = (int) Math.random() * (geneArray.size() - 1);
+				pool.add(tempArray);
+				
+				System.out.print("[");
+				for(int x=0;x<tempArray.size();x++){
+					for(int y=0;y<tempArray.get(x).length;y++){
+						System.out.print(tempArray.get(x)[y]+", ");
+					}
+				}
+				System.out.println("]");
 
-			double rj1 = geneArray.get(r1).getFitnessValue();
-			double rj2 = geneArray.get(r2).getFitnessValue();
-			// System.out.println("rj1 :"+rj1+" rj2 : "+rj2);
-
-			if (rj1 >= rj2) {
-				pool.add(geneInfoArray.get(r1));
-			} else {
-				pool.add(geneInfoArray.get(r2));
 			}
-
 		}
-//		if (Math.random() < 0.2) {
+	
+		
+//		if (Math.random() < 0.1) {
 //			for (int i = 0; i < pool.size(); i++) {
 //				for (int j = 0; j < pool.get(i).size(); j++) {
 //					for (int k = 0; k < pool.get(i).get(j).length; k++) {
@@ -310,9 +495,9 @@ public class cihw2 extends Application {
 //						double temp = 0;
 //
 //						if (Math.random() > 0.5) {
-//							temp = (rand.nextFloat() + 0f)/10;
+//							temp = (rand.nextFloat() + 0f);
 //						} else {
-//							temp = (rand.nextFloat() - 1f)/10;
+//							temp = (rand.nextFloat() - 1f);
 //						}
 //
 //						temp /= iteration;
@@ -467,17 +652,17 @@ public class cihw2 extends Application {
 		Random rand = new Random();
 		double s = 0;
 		if (Math.random() > 0.5) {
-			s = (rand.nextFloat() + 0f) / 100;
+			s = (rand.nextFloat() + 0f);
 		} else {
-			s = (rand.nextFloat() - 1f) / 100;
+			s = (rand.nextFloat() - 1f);
 		}
 
 		double doMutationProb = Math.random();
-		double randomNois = Math.random() / 100;
+		double randomNois = Math.random() ;
 
 		if (doMutationProb < mutationProb) {
 
-			int mutationNo = (int) Math.random() * (geneInfoArray.size() - 1);
+			int mutationNo = (int) Math.random() * (geneArray.size() - 1);
 
 			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
 				for (int j = 0; j < geneInfoArray.get(mutationNo).get(i).length; j++) {
@@ -531,37 +716,43 @@ public class cihw2 extends Application {
 	}
 
 	public void initialSetSensorsLine() {
-		sensorLine1.setEndX(car.sensor1.getX());
-		sensorLine1.setEndY(car.sensor1.getY());
-		sensorLine2.setEndX(car.sensor2.getX());
-		sensorLine2.setEndY(car.sensor2.getY());
-		sensorLine3.setEndX(car.sensor3.getX());
-		sensorLine3.setEndY(car.sensor3.getY());
-
+		sensorLine1.setStartX(transToCanvasX(car.getX()));
+		sensorLine1.setStartY(transToCanvasY(car.getY()));
+		sensorLine1.setEndX(transToCanvasX(car.sensor1.getX()));
+		sensorLine1.setEndY(transToCanvasY(car.sensor1.getY()));
+		
+		sensorLine2.setStartX(transToCanvasX(car.getX()));
+		sensorLine2.setStartY(transToCanvasY(car.getY()));
+		sensorLine2.setEndX(transToCanvasX(car.sensor2.getX()));
+		sensorLine2.setEndY(transToCanvasY(car.sensor2.getY()));
+		
+		sensorLine3.setStartX(transToCanvasX(car.getX()));
+		sensorLine3.setStartY(transToCanvasY(car.getY()));
+		sensorLine3.setEndX(transToCanvasX(car.sensor3.getX()));
+		sensorLine3.setEndY(transToCanvasY(car.sensor3.getY()));
+		
 		// Calculate the distance with walls
 		car.sensor1.calDistance(canvasPane);
 		car.sensor2.calDistance(canvasPane);
 		car.sensor3.calDistance(canvasPane);
 
 		// Set showing information
-		// line1Dist.setText("Red Line :" + car.sensor1.getDist());
-		// line2Dist.setText("Blue Line :" + car.sensor2.getDist());
-		// line3Dist.setText("Green Line :" + car.sensor3.getDist());
-		// angleInfo.setText("Angle with x-axis : " + Math.round(car.angle *
-		// 1000.0) / 1000.0 + "º");
+		line1Dist.setText("Red Line :"+car.sensor1.getDist());
+		line2Dist.setText("Blue Line :"+car.sensor2.getDist());
+		line3Dist.setText("Green Line :"+car.sensor3.getDist());
+		angleInfo.setText("Angle with x-axis : " + Math.round(car.angle * 1000.0) / 1000.0+"º");
 
 		// Set sensor lines
 		int sensor1ClosetId = car.sensor1.getClosestLineId();
 		int sensor2ClosetId = car.sensor2.getClosestLineId();
 		int sensor3ClosetId = car.sensor3.getClosestLineId();
-
-		sensorLine1.setEndX(car.sensor1.getIntersectionPointX(sensor1ClosetId));
-		sensorLine1.setEndY(car.sensor1.getIntersectionPointY(sensor1ClosetId));
-		sensorLine2.setEndX(car.sensor2.getIntersectionPointX(sensor2ClosetId));
-		sensorLine2.setEndY(car.sensor2.getIntersectionPointY(sensor2ClosetId));
-		sensorLine3.setEndX(car.sensor3.getIntersectionPointX(sensor3ClosetId));
-		sensorLine3.setEndY(car.sensor3.getIntersectionPointY(sensor3ClosetId));
-
+		
+		sensorLine1.setEndX(transToCanvasX(car.sensor1.getIntersectionPointX(sensor1ClosetId)));
+		sensorLine1.setEndY(transToCanvasY(car.sensor1.getIntersectionPointY(sensor1ClosetId)));
+		sensorLine2.setEndX(transToCanvasX(car.sensor2.getIntersectionPointX(sensor2ClosetId)));
+		sensorLine2.setEndY(transToCanvasY(car.sensor2.getIntersectionPointY(sensor2ClosetId)));
+		sensorLine3.setEndX(transToCanvasX(car.sensor3.getIntersectionPointX(sensor3ClosetId)));
+		sensorLine3.setEndY(transToCanvasY(car.sensor3.getIntersectionPointY(sensor3ClosetId)));
 	}
 
 	public void printCurrentThread() {
@@ -571,38 +762,38 @@ public class cihw2 extends Application {
 
 	}
 
-	public void sensorLinesSetting() {
+	public void sensorLinesSetting(){
 		sensorLine1 = new Line();
-		sensorLine1.setStartX(car.getCenterX());
-		sensorLine1.setStartY(car.getCenterY());
-		sensorLine1.setEndX(car.sensor1.getX());
-		sensorLine1.setEndY(car.sensor1.getY());
-		sensorLine1.startXProperty().bind(car.centerXProperty());
-		sensorLine1.startYProperty().bind(car.centerYProperty());
+		sensorLine1.setStartX(transToCanvasX(car.getX()));
+		sensorLine1.setStartY(transToCanvasY(car.getY()));
+		sensorLine1.setEndX(transToCanvasX(car.sensor1.getX()));
+		sensorLine1.setEndY(transToCanvasY(car.sensor1.getY()));
+//		sensorLine1.startXProperty().bind(car.centerXProperty());
+//		sensorLine1.startYProperty().bind(car.centerYProperty());
 		sensorLine1.setStroke(Color.DARKRED);
 
 		sensorLine2 = new Line();
-		sensorLine2.setStartX(car.getCenterX());
-		sensorLine2.setStartY(car.getCenterY());
-		sensorLine2.setEndX(car.sensor2.getX());
-		sensorLine2.setEndY(car.sensor2.getY());
-		sensorLine2.startXProperty().bind(car.centerXProperty());
-		sensorLine2.startYProperty().bind(car.centerYProperty());
+		sensorLine2.setStartX(transToCanvasX(car.getX()));
+		sensorLine2.setStartY(transToCanvasY(car.getY()));
+		sensorLine2.setEndX(transToCanvasX(car.sensor2.getX()));
+		sensorLine2.setEndY(transToCanvasY(car.sensor2.getY()));
+//		sensorLine2.startXProperty().bind(car.centerXProperty());
+//		sensorLine2.startYProperty().bind(car.centerYProperty());
 		sensorLine2.setStroke(Color.DARKBLUE);
 
 		sensorLine3 = new Line();
-		sensorLine3.setStartX(car.getCenterX());
-		sensorLine3.setStartY(car.getCenterY());
-		sensorLine3.setEndX(car.sensor3.getX());
-		sensorLine3.setEndY(car.sensor3.getY());
-		sensorLine3.startXProperty().bind(car.centerXProperty());
-		sensorLine3.startYProperty().bind(car.centerYProperty());
+		sensorLine3.setStartX(transToCanvasX(car.getX()));
+		sensorLine3.setStartY(transToCanvasY(car.getY()));
+		sensorLine3.setEndX(transToCanvasX(car.sensor3.getX()));
+		sensorLine3.setEndY(transToCanvasY(car.sensor3.getY()));
+//		sensorLine3.startXProperty().bind(car.centerXProperty());
+//		sensorLine3.startYProperty().bind(car.centerYProperty());
 		sensorLine3.setStroke(Color.DARKGREEN);
-
+		
 		sensorLine1.setVisible(true);
 		sensorLine2.setVisible(true);
 		sensorLine3.setVisible(true);
-
+		
 		canvasPane.getChildren().addAll(sensorLine1, sensorLine2, sensorLine3);
 
 	}
@@ -659,6 +850,23 @@ public class cihw2 extends Application {
 			System.out.println("");
 		}
 		System.out.println("");
+	}
+	public double transToCanvasX(double x) {
+		double value = (x + 30) * ratio;
+		return value;
+	}
+
+	public double transToCanvasY(double y) {
+		double value = (-y + 52) * ratio;
+		return value;
+	}
+	public double transBackX(double x){
+		double value = (x /ratio)-30;
+		return value;
+	}
+	public double transBackY(double y){
+		double value = -1*((y /ratio)-52);
+		return value;
 	}
 
 	public static void main(String[] args) {

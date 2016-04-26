@@ -27,11 +27,13 @@ public class Gene {
 
 		for (int i = 0; i < neuronNumber; i++) {
 			weight[i] = Math.random();
+			
 			double[] tempM = new double[3];
 			for (int j = 0; j < 3; j++) {
 				tempM[j] = Math.random() * 30;
 			}
 			mean.add(tempM);
+			
 			sigma[i] = Math.random() * 10;
 		}
 
