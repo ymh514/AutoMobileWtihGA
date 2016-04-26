@@ -48,7 +48,7 @@ public class cihw2 extends Application {
 	private double avgError;
 	private int bstErrorNo;
 	private double bstErrorValue;
-	private double errorLimit = 0.1;
+	private double errorLimit = 0.05;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -72,14 +72,14 @@ public class cihw2 extends Application {
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
-		TextField looptimesText = new TextField("50000");
-		TextField groupSizeText = new TextField("40");
-		TextField crossoverProbText = new TextField("0.5");
-		TextField mutationProbText = new TextField("0.33");
+		TextField looptimesText = new TextField("4000");
+		TextField groupSizeText = new TextField("2000");
+		TextField crossoverProbText = new TextField("0.6");
+		TextField mutationProbText = new TextField("0.033");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
-				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start,go);
+				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start, go);
 		canvasPane.getChildren().add(car);
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
@@ -131,7 +131,7 @@ public class cihw2 extends Application {
 
 				bstErrorNo = 0;
 				bstErrorValue = Double.MAX_VALUE;
-				
+
 				geneInfoArray = new ArrayList<ArrayList<double[]>>();
 				avgError = 0;
 
@@ -156,40 +156,41 @@ public class cihw2 extends Application {
 					geneInfoArray.add(geneArray.get(i).getGeneInfo());
 				}
 
-				for(int i=0;i<fitnessFunc.length;i++){
-					if(fitnessFunc[i] < bstErrorValue){
+				for (int i = 0; i < fitnessFunc.length; i++) {
+					if (fitnessFunc[i] < bstErrorValue) {
 						bstErrorValue = fitnessFunc[i];
 						bstErrorNo = i;
 					}
 				}
 				double tt = bstError[bstErrorNo];
-//				for(int i=0;i<bstError[bstErrorNo];i++){
-//					tt += avgErrorArray.get(bstErrorNo)[i];
-//				}
+				// for(int i=0;i<bstError[bstErrorNo];i++){
+				// tt += avgErrorArray.get(bstErrorNo)[i];
+				// }
 				tt /= inputArray.size();
-				System.out.println(" avg : "+tt);
+				// System.out.println(" avg : "+tt);
 
-//				for (int i = 0; i < avgErrorTempArray.length; i++) {
-//					avgError += avgErrorTempArray[i];
-//				}
-//				
-//				avgError = avgError / avgErrorTempArray.length;
-//				System.out.println(iteration+" avg : "+avgError);
-				
+				// for (int i = 0; i < avgErrorTempArray.length; i++) {
+				// avgError += avgErrorTempArray[i];
+				// }
+				//
+				// avgError = avgError / avgErrorTempArray.length;
+				// System.out.println(iteration+" avg : "+avgError);
+
 				for (int i = 0; i < fitnessFunc.length; i++) {
 					avgError += fitnessFunc[i];
 				}
 				avgError = tt;
-				System.out.println(iteration+" rmse : "+avgError + "best no :"+bstErrorNo+" value : "+bstErrorValue);
+				System.out.println(
+						iteration + " avg : " + avgError + " best no :" + bstErrorNo + " value : " + bstErrorValue);
 
 				double errorTotal = 0;
 				for (int i = 0; i < fitnessFunc.length; i++) {
-//					System.out.println("error : " + error[i]);
+					// System.out.println("error : " + error[i]);
 					errorTotal += fitnessFunc[i];
 				}
-				
+
 				System.out.println("------------------------------");
-				
+
 				double newTotal = 0;
 				for (int i = 0; i < fitnessFunc.length; i++) {
 					fitnessFunc[i] = Math.abs(fitnessFunc[i] - errorTotal);
@@ -208,20 +209,20 @@ public class cihw2 extends Application {
 
 				mutation();
 
-				for(int i=0;i<geneArray.size();i++){
-//					System.out.println("-----------------");
-//					System.out.println(geneArray.size());
-//					System.out.println(geneInfoArray.size());
-//					System.out.println("-----------------");
+				for (int i = 0; i < geneArray.size(); i++) {
+					// System.out.println("-----------------");
+					// System.out.println(geneArray.size());
+					// System.out.println(geneInfoArray.size());
+					// System.out.println("-----------------");
 
 					geneArray.get(i).updateGeneInfo(geneInfoArray.get(i));
 				}
-				
+
 				if (iteration > looptimes) {
 					System.out.println("looptimes break loop");
 					break;
 				}
-				if(avgError < errorLimit && iteration>300){
+				if (avgError < errorLimit) {
 					System.out.println("good error break");
 					break;
 				}
@@ -230,7 +231,7 @@ public class cihw2 extends Application {
 			}
 		});
 
-		go.setOnMouseClicked(event ->{
+		go.setOnMouseClicked(event -> {
 			new Thread() {
 				public void run() {
 					while (true) {
@@ -244,9 +245,9 @@ public class cihw2 extends Application {
 								public void run() {
 									// The function for the final round
 
-										// Tune car's position and angle
-										car.tuneCar(canvasPane,geneArray,bstErrorNo);
-										initialSetSensorsLine();
+									// Tune car's position and angle
+									car.tuneCar(canvasPane, geneArray, bstErrorNo);
+									initialSetSensorsLine();
 
 								}
 							});
@@ -258,7 +259,6 @@ public class cihw2 extends Application {
 					}
 				}
 			}.start();
-
 
 		});
 		reset.setOnMouseClicked(event -> {
@@ -280,110 +280,111 @@ public class cihw2 extends Application {
 	}
 
 	public void reproduction(double[] normalError) {
-		
-		pool = new ArrayList<ArrayList<double[]>>();
-		
-		
-//		// 輪盤
-//		double[] boundary = new double[normalError.length + 1];
-//		boundary[0] = 0;
-//		for (int i = 0; i < normalError.length; i++) {
-//			int boundaryCount = i + 1;
-//			if (i == normalError.length - 1) {
-//				boundary[boundaryCount] = 1;
-//			} else {
-//				boundary[boundaryCount] = boundary[i] + normalError[i];
-//			}
-//		}
-////		 for (int i = 0; i < boundary.length; i++) {
-////			 System.out.println("boundary" + i + " : " + boundary[i]);
-////		 }
-////		System.out.println(iteration + " geneInfoArray "+geneInfoArray.size());
-//
-//		for (int i = 0; i < geneInfoArray.size(); i++) {
-//			double rand = Math.random();
-//			int reproductionNo = 0;
-////			 System.out.println("rand:" + rand);
-//			for (int j = 0; j < boundary.length - 1; j++) {
-//				if (rand >= boundary[j] && rand < boundary[j + 1]) {
-//					reproductionNo = j;
-////					 System.out.println("region :" + j);
-//				}
-//			}
-//
-//			pool.add(geneInfoArray.get(reproductionNo));
-//		}
 
-		
+		pool = new ArrayList<ArrayList<double[]>>();
+
+		// // 輪盤
+		// double[] boundary = new double[normalError.length + 1];
+		// boundary[0] = 0;
+		// for (int i = 0; i < normalError.length; i++) {
+		// int boundaryCount = i + 1;
+		// if (i == normalError.length - 1) {
+		// boundary[boundaryCount] = 1;
+		// } else {
+		// boundary[boundaryCount] = boundary[i] + normalError[i];
+		// }
+		// }
+		//// for (int i = 0; i < boundary.length; i++) {
+		//// System.out.println("boundary" + i + " : " + boundary[i]);
+		//// }
+		//// System.out.println(iteration + " geneInfoArray
+		// "+geneInfoArray.size());
+		//
+		// for (int i = 0; i < geneInfoArray.size(); i++) {
+		// double rand = Math.random();
+		// int reproductionNo = 0;
+		//// System.out.println("rand:" + rand);
+		// for (int j = 0; j < boundary.length - 1; j++) {
+		// if (rand >= boundary[j] && rand < boundary[j + 1]) {
+		// reproductionNo = j;
+		//// System.out.println("region :" + j);
+		// }
+		// }
+		//
+		// pool.add(geneInfoArray.get(reproductionNo));
+		// }
+
 		// 競爭
-		for(int i=0;i<geneArray.size();i++){
+
+		for (int i = 0; i < geneArray.size(); i++) {
 			int r1 = i;
-			int r2 = (int)Math.random()*(geneArray.size() - 1);
-			if(r1 == r2){
-				r2 = (int)Math.random()*(geneArray.size() - 1);
+			int r2 = (int) Math.random() * (geneArray.size() - 1);
+			if (r1 == r2) {
+				r2 = (int) Math.random() * (geneArray.size() - 1);
 			}
 
 			double rj1 = geneArray.get(r1).getFitnessValue();
 			double rj2 = geneArray.get(r2).getFitnessValue();
-//			System.out.println("rj1 :"+rj1+"  rj2 : "+rj2);
+			// System.out.println("rj1 :"+rj1+" rj2 : "+rj2);
 
-			if(rj1>=rj2){
+			if (rj1 >= rj2) {
 				pool.add(geneInfoArray.get(r1));
-			}
-			else{
+			} else {
 				pool.add(geneInfoArray.get(r2));
 			}
 
 		}
-		
-		for (int i = 0; i < pool.size(); i++) {
-			for (int j = 0; j < pool.get(i).size(); j++) {
-				for (int k = 0; k < pool.get(i).get(j).length; k++) {
-					if (j == 0 || j == 1) {
-						Random rand = new Random();
-						double temp = 0;
+//		if (Math.random() < 0.3) {
+//			for (int i = 0; i < pool.size(); i++) {
+//				for (int j = 0; j < pool.get(i).size(); j++) {
+//					for (int k = 0; k < pool.get(i).get(j).length; k++) {
+//						Random rand = new Random();
+//						double temp = 0;
+//
+//						if (Math.random() > 0.5) {
+//							temp = (rand.nextFloat() + 0f) / 10000;
+//						} else {
+//							temp = (rand.nextFloat() - 1f) / 10000;
+//						}
+//
+//						if (j == 0 || j == 1) {
+//
+//							double judge = pool.get(i).get(j)[k] + temp;
+//							if (judge > 1 || judge < 0) {
+//								// complete reproduction
+//							} else {
+//								// add some noise
+//								pool.get(i).get(j)[k] = judge;
+//							}
+//						} else if (j == 1) {
+//							double judge = pool.get(i).get(j)[k] + temp;
+//							if (judge > 30 || judge < 0) {
+//								// complete reproduction
+//							} else {
+//								// add some noise
+//								pool.get(i).get(j)[k] = judge;
+//							}
+//
+//						} else {
+//							double judge = pool.get(i).get(j)[k] + temp;
+//							if (judge > 10 || judge < 0) {
+//								// complete reproduction
+//							} else {
+//								// add some noise
+//								pool.get(i).get(j)[k] = judge;
+//							}
+//
+//						}
+//					}
+//				}
+//			}
+//		} 
 
-						if (Math.random() > 0.5) {
-							temp = (rand.nextFloat() + 0f) /10;
-						} else {
-							temp = (rand.nextFloat() - 1f) /10;
-						}
-//						temp = (temp - iteration) / looptimes;
-
-						double judge = pool.get(i).get(j)[k] + temp;
-						if (judge > 1 || judge < 0) {
-							// complete reproduction
-						} else {
-							// add some noise
-							pool.get(i).get(j)[k] = judge;
-						}
-					} else if (j == 1) {
-						double judge = pool.get(i).get(j)[k] + Math.random()/10;
-						if (judge > 30 || judge < 0) {
-							// complete reproduction
-						} else {
-							// add some noise
-							pool.get(i).get(j)[k] = judge;
-						}
-
-					} else {
-						double judge = pool.get(i).get(j)[k] + Math.random()/10;
-						if (judge > 10 || judge < 0) {
-							// complete reproduction
-						} else {
-							// add some noise
-							pool.get(i).get(j)[k] = judge;
-						}
-
-					}
-				}
-			}
-		}
 	}
 
 	public void crossover() {
 		// crossover
-//		int crossNo1 = (int)Math.random()*(pool.size() - 1);
+		// int crossNo1 = (int)Math.random()*(pool.size() - 1);
 		for (int i = 0; i < pool.size(); i++) {
 			int crossNo1 = i;
 			Random rand = new Random();
@@ -482,11 +483,10 @@ public class cihw2 extends Application {
 				// donothing
 			}
 		}
-		
-		
-//		System.out.println("-----------------");
-//		System.out.println("pool:"+pool.size());
-//		System.out.println("-----------------");
+
+		// System.out.println("-----------------");
+		// System.out.println("pool:"+pool.size());
+		// System.out.println("-----------------");
 
 		geneInfoArray = pool;
 	}
@@ -500,14 +500,14 @@ public class cihw2 extends Application {
 		} else {
 			s = (rand.nextFloat() - 1f) / 100;
 		}
-		
+
 		double doMutationProb = Math.random();
 		double randomNois = Math.random() / 100;
 
 		if (doMutationProb < mutationProb) {
 
-			int mutationNo = (int)Math.random()*(geneInfoArray.size() - 1);
-			
+			int mutationNo = (int) Math.random() * (geneInfoArray.size() - 1);
+
 			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
 				for (int j = 0; j < geneInfoArray.get(mutationNo).get(i).length; j++) {
 					if (i == 0 || i == 1) {
@@ -534,7 +534,7 @@ public class cihw2 extends Application {
 		} else {
 
 		}
-		
+
 	}
 
 	public void drawPath(ArrayList<float[]> showArray) {
