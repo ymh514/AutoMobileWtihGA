@@ -55,7 +55,7 @@ public class Car extends Circle {
 		if (startFlag != 0) {
 			double output = geneArray.get(bstNo).calOutput(distance);
 			System.out.println("output :"+output);
-			turnAngle = output * 80 - 40;
+			turnAngle = output;
 		} else {
 			turnAngle = 0;
 			startFlag = 1;

@@ -2,6 +2,7 @@ package cihw2;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Gene {
 	private int neuronNumber = 3;
@@ -26,7 +27,16 @@ public class Gene {
 		
 
 		for (int i = 0; i < neuronNumber; i++) {
-			weight[i] = Math.random();
+			Random rand = new Random();
+			double temp = 0;
+
+			if (Math.random() > 0.5) {
+				temp = (rand.nextFloat() + 0f)*40;
+			} else {
+				temp = (rand.nextFloat() - 1f)*40;
+			}
+
+			weight[i] = temp;
 			
 			double[] tempM = new double[3];
 			for (int j = 0; j < 3; j++) {
