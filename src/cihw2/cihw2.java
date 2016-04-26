@@ -72,10 +72,10 @@ public class cihw2 extends Application {
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
-		TextField looptimesText = new TextField("4000");
+		TextField looptimesText = new TextField("2000");
 		TextField groupSizeText = new TextField("2000");
 		TextField crossoverProbText = new TextField("0.6");
-		TextField mutationProbText = new TextField("0.033");
+		TextField mutationProbText = new TextField("0.03");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
@@ -101,7 +101,7 @@ public class cihw2 extends Application {
 
 			}
 			inputDataNormalize();
-			// drawPath(inputArray);
+			//drawPath(inputArray);
 		});
 
 		start.setOnMouseClicked(event -> {
@@ -180,8 +180,12 @@ public class cihw2 extends Application {
 					avgError += fitnessFunc[i];
 				}
 				avgError = tt;
-				System.out.println(
-						iteration + " avg : " + avgError + " best no :" + bstErrorNo + " value : " + bstErrorValue);
+				if(iteration%5 == 0){
+					System.out.println(
+							iteration + " avg : " + (double)Math.round(avgError*100000)/100000 + " best no :" + bstErrorNo + " value : " + (double)Math.round(bstErrorValue*100000)/100000);
+					System.out.println("------------------------------");
+
+				}
 
 				double errorTotal = 0;
 				for (int i = 0; i < fitnessFunc.length; i++) {
@@ -189,7 +193,6 @@ public class cihw2 extends Application {
 					errorTotal += fitnessFunc[i];
 				}
 
-				System.out.println("------------------------------");
 
 				double newTotal = 0;
 				for (int i = 0; i < fitnessFunc.length; i++) {
@@ -203,18 +206,13 @@ public class cihw2 extends Application {
 					geneArray.get(i).setFitnessValue(fitnessFunc[i]);
 				}
 
-				reproduction(fitnessFunc);
+				reproduction();
 
 				crossover();
 
 				mutation();
 
 				for (int i = 0; i < geneArray.size(); i++) {
-					// System.out.println("-----------------");
-					// System.out.println(geneArray.size());
-					// System.out.println(geneInfoArray.size());
-					// System.out.println("-----------------");
-
 					geneArray.get(i).updateGeneInfo(geneInfoArray.get(i));
 				}
 
@@ -279,40 +277,10 @@ public class cihw2 extends Application {
 
 	}
 
-	public void reproduction(double[] normalError) {
+	public void reproduction() {
 
 		pool = new ArrayList<ArrayList<double[]>>();
 
-		// // 輪盤
-		// double[] boundary = new double[normalError.length + 1];
-		// boundary[0] = 0;
-		// for (int i = 0; i < normalError.length; i++) {
-		// int boundaryCount = i + 1;
-		// if (i == normalError.length - 1) {
-		// boundary[boundaryCount] = 1;
-		// } else {
-		// boundary[boundaryCount] = boundary[i] + normalError[i];
-		// }
-		// }
-		//// for (int i = 0; i < boundary.length; i++) {
-		//// System.out.println("boundary" + i + " : " + boundary[i]);
-		//// }
-		//// System.out.println(iteration + " geneInfoArray
-		// "+geneInfoArray.size());
-		//
-		// for (int i = 0; i < geneInfoArray.size(); i++) {
-		// double rand = Math.random();
-		// int reproductionNo = 0;
-		//// System.out.println("rand:" + rand);
-		// for (int j = 0; j < boundary.length - 1; j++) {
-		// if (rand >= boundary[j] && rand < boundary[j + 1]) {
-		// reproductionNo = j;
-		//// System.out.println("region :" + j);
-		// }
-		// }
-		//
-		// pool.add(geneInfoArray.get(reproductionNo));
-		// }
 
 		// 競爭
 
@@ -334,7 +302,7 @@ public class cihw2 extends Application {
 			}
 
 		}
-//		if (Math.random() < 0.3) {
+//		if (Math.random() < 0.2) {
 //			for (int i = 0; i < pool.size(); i++) {
 //				for (int j = 0; j < pool.get(i).size(); j++) {
 //					for (int k = 0; k < pool.get(i).get(j).length; k++) {
@@ -342,11 +310,13 @@ public class cihw2 extends Application {
 //						double temp = 0;
 //
 //						if (Math.random() > 0.5) {
-//							temp = (rand.nextFloat() + 0f) / 10000;
+//							temp = (rand.nextFloat() + 0f)/10;
 //						} else {
-//							temp = (rand.nextFloat() - 1f) / 10000;
+//							temp = (rand.nextFloat() - 1f)/10;
 //						}
 //
+//						temp /= iteration;
+//						
 //						if (j == 0 || j == 1) {
 //
 //							double judge = pool.get(i).get(j)[k] + temp;
@@ -361,7 +331,7 @@ public class cihw2 extends Application {
 //							if (judge > 30 || judge < 0) {
 //								// complete reproduction
 //							} else {
-//								// add some noise
+//								// add some noise 
 //								pool.get(i).get(j)[k] = judge;
 //							}
 //
@@ -381,7 +351,7 @@ public class cihw2 extends Application {
 //		} 
 
 	}
-
+	
 	public void crossover() {
 		// crossover
 		// int crossNo1 = (int)Math.random()*(pool.size() - 1);
@@ -394,7 +364,7 @@ public class cihw2 extends Application {
 			}
 
 			double distanceDef = Math.random();
-			double crossSigma = Math.random() / 1000;
+			double crossSigma = Math.random() / 10000;
 			double doCrossoverProb = Math.random();
 
 			if (doCrossoverProb < crossoverProb) {
@@ -481,6 +451,7 @@ public class cihw2 extends Application {
 				}
 			} else {
 				// donothing
+				
 			}
 		}
 
@@ -537,7 +508,7 @@ public class cihw2 extends Application {
 
 	}
 
-	public void drawPath(ArrayList<float[]> showArray) {
+	public void drawPath(ArrayList<double[]> showArray) {
 		for (int i = 0; i < showArray.size(); i++) {
 			Circle path = new Circle();
 			path.setCenterX(startPointX * ratio + showArray.get(i)[0] * ratio);

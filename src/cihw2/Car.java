@@ -55,10 +55,15 @@ public class Car extends Circle {
 //		}
 		
 		// Calculate turn angle 
-		double[] distance = {Double.parseDouble(this.sensor1.getDist())/ratio,Double.parseDouble(this.sensor2.getDist())/ratio,Double.parseDouble(this.sensor3.getDist())/ratio};
+		double[] distance = {Double.parseDouble(this.sensor1.getDist())/ratio,Double.parseDouble(this.sensor3.getDist())/ratio,Double.parseDouble(this.sensor2.getDist())/ratio};
 		turnAngle = geneArray.get(bstNo).calOutput(distance);
+
 		turnAngle = turnAngle*80 - 40;
-//		System.out.println(turnAngle);
+		//
+//		turnAngle *= -1;
+		//
+		System.out.println(" left : "+distance[2]+" middle :"+distance[0]+" right : "+distance[1]);
+		System.out.println(turnAngle);
 		//turnAngle = fuzzy.getTurnAngle();
 		
 		// Tune car's coordinate
@@ -80,19 +85,19 @@ public class Car extends Circle {
 		// Set sensors X and Y
 		this.sensor1.setX((this.getCenterX())+3*ratio*Math.cos(Math.toRadians(angle)));
 		this.sensor1.setY(this.getCenterY()-3*ratio*Math.sin(Math.toRadians(angle)));
-		double angleForS2 = angle-45;
-		if(angleForS2 <0){
-			angleForS2 += 360;
+		double angleForS2 = angle+45;
+		if(angleForS2 >360){
+			angleForS2 %= 360;
 		}
 		this.sensor2.setX(this.getCenterX()+(3*ratio*Math.cos(Math.toRadians(angleForS2))));
 		this.sensor2.setY(this.getCenterY()-(3*ratio*Math.sin(Math.toRadians(angleForS2))));
-		double angleForS3 = angle+45;
-		if(angleForS3 > 360){
-			angleForS3 %= 360;
+		double angleForS3 = angle-45;
+		if(angleForS3 <0){
+			angleForS3 += 360;
 		}
 		this.sensor3.setX(this.getCenterX()+(3*ratio*Math.cos(Math.toRadians(angleForS3))));
 		this.sensor3.setY(this.getCenterY()-(3*ratio*Math.sin(Math.toRadians(angleForS3))));
-		
+				
 		// Add path on canvas
 		addPathOnCanvas(canvasPane);
 		
