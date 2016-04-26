@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import cihw2.Canvas;
@@ -59,6 +60,10 @@ public class cihw2 extends Application {
 	private Label line3Dist = new Label("Green");
 	private Label angleInfo = new Label("");
 	static int aaa = 0 ;
+	
+	
+	private double[] rankS;
+	private double[] rank ;
 
 
 	@Override
@@ -193,6 +198,11 @@ public class cihw2 extends Application {
 					geneInfoArray.add(geneArray.get(i).getGeneInfo());
 				}
 
+				//here's fitness function is smaller => better
+				
+				rankTest(fitnessFunc);
+				
+				
 				for (int i = 0; i < fitnessFunc.length; i++) {
 					if (fitnessFunc[i] < bstErrorValue) {
 						bstErrorValue = fitnessFunc[i];
@@ -200,18 +210,7 @@ public class cihw2 extends Application {
 					}
 				}
 				double tt = bstError[bstErrorNo];
-				// for(int i=0;i<bstError[bstErrorNo];i++){
-				// tt += avgErrorArray.get(bstErrorNo)[i];
-				// }
 				tt /= inputArray.size();
-				// System.out.println(" avg : "+tt);
-
-				// for (int i = 0; i < avgErrorTempArray.length; i++) {
-				// avgError += avgErrorTempArray[i];
-				// }
-				//
-				// avgError = avgError / avgErrorTempArray.length;
-				// System.out.println(iteration+" avg : "+avgError);
 
 				for (int i = 0; i < fitnessFunc.length; i++) {
 					avgError += fitnessFunc[i];
@@ -314,6 +313,49 @@ public class cihw2 extends Application {
 
 	}
 
+	public void rankTest(double[] fitnessFunc){
+		rankS = new double[fitnessFunc.length];
+		rankS = fitnessFunc.clone();
+		rank = new double[rankS.length];
+
+		Arrays.sort(rankS);
+
+		double[] ban = new double[fitnessFunc.length];
+		for (int i = 0; i < ban.length; i++) {
+			ban[i] = Double.MAX_VALUE;
+		}
+
+		int count = 0;
+		f1: for (int i = 0; i < rankS.length; i++) {
+			f2: for (int j = 0; j < fitnessFunc.length; j++) {
+				if (count == 0) {
+					if (rankS[i] == fitnessFunc[j]) {
+						ban[count] = j;
+						rank[j] = i;
+						count++;
+						break f2;
+					}
+				} else {
+					if (rankS[i] == fitnessFunc[j]) {
+						int findFlag = 0;
+						f3: for (int k = 0; k < ban.length; k++) {
+							if (ban[k] == j) {
+								findFlag =1;
+								break f3;
+							}
+						}
+						if(findFlag != 1){
+							ban[count] = j;
+							rank[j] = i;
+							count++;
+							break f2;
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	public void reproduction() {
 
 		pool = new ArrayList<ArrayList<double[]>>();
@@ -637,7 +679,7 @@ public class cihw2 extends Application {
 		// System.out.println("-----------------");
 		// System.out.println("pool:"+pool.size());
 		// System.out.println("-----------------");
-
+		geneInfoArray.clear();
 		geneInfoArray = pool;
 	}
 
