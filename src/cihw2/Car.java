@@ -54,7 +54,7 @@ public class Car extends Circle {
 				Double.parseDouble(this.sensor3.getDist())  };
 		if (startFlag != 0) {
 			double output = geneArray.get(bstNo).calOutput(distance);
-			System.out.println("output :"+output);
+//			System.out.println("output :"+output);
 			turnAngle = output;
 		} else {
 			turnAngle = 0;
