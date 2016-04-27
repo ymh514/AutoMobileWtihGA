@@ -45,7 +45,7 @@ public class Car extends Circle {
 
 	}
 
-	public void tuneCar(Canvas canvasPane, ArrayList<Gene> geneArray, int bstNo) {
+	public void tuneCar(Canvas canvasPane, Gene bestGene) {
 
 		// Calculate turn angle
 
@@ -53,7 +53,7 @@ public class Car extends Circle {
 				Double.parseDouble(this.sensor2.getDist()) ,
 				Double.parseDouble(this.sensor3.getDist())  };
 		if (startFlag != 0) {
-			double output = geneArray.get(bstNo).calOutput(distance);
+			double output = bestGene.calOutput(distance);
 //			System.out.println("output :"+output);
 			turnAngle = output;
 		} else {

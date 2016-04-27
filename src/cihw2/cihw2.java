@@ -52,7 +52,7 @@ public class cihw2 extends Application {
 	private double avgError;
 	private int bstErrorNo;
 	private double bstErrorValue;
-	private double errorLimit = 2;
+	private double errorLimit = 1;
 	private int drawAcelerate = 300;
 	private double initialAngleValue = 90;
 	private Label line1Dist = new Label("Red");
@@ -61,8 +61,8 @@ public class cihw2 extends Application {
 	private Label angleInfo = new Label("");
 	
 	private Gene bestGene;
-	private double bstGeneFit;
-	private double bstGenAvge;
+	private double bstGeneFit = Double.MAX_VALUE;
+	private double bstGeneAvge = Double.MAX_VALUE;
 	
 	static int aaa = 0;
 
@@ -203,7 +203,6 @@ public class cihw2 extends Application {
 					}
 
 					fitnessFunc[i] /= 2;
-//					geneInfoArray.add(geneArray.get(i).getGeneInfo());
 				}
 
 				// here's fitness function is smaller => better
@@ -215,13 +214,22 @@ public class cihw2 extends Application {
 				double bestAvgError = bstError[(int) rank[0]] / inputArray.size();
 				avgError = bestAvgError;
 				bstErrorNo = (int) bestFitnessIndex;
-//				ArrayList<Gene> temp = (ArrayList<Gene>) geneArray.clone();
-//				bestGene = temp.get((int) bestFitnessIndex);
-//				bstGeneFit = bestFitness;
-//				bstGenAvge = bestAvgError;
-				System.out.println(iteration+" avg: "+(double)Math.round(bestAvgError*1000)/1000+" Best Gene :#"+bestFitnessIndex+" fitness :"+(double)Math.round(bestFitness*1000)/1000);
-				System.out.println("-------------------------------------");
+				System.out.println(iteration+" avg: "+(double)Math.round(bestAvgError*1000)/1000+" BstG now :#"+bestFitnessIndex+" fitness :"+(double)Math.round(bestFitness*1000)/1000);
+				System.out.println("Now Best Gene avg :"+bstGeneAvge+" fit:"+bstGeneFit);
 
+				System.out.println("-------------------------------------");
+				
+				ArrayList<Gene> temp = (ArrayList<Gene>) geneArray.clone();
+				
+				if(bestAvgError < bstGeneAvge ){
+					bestGene = temp.get((int) bestFitnessIndex);
+					bstGeneFit = bestFitness;
+					bstGeneAvge = bestAvgError;
+
+				}
+				
+
+				
 				double errorTotal = 0;
 				for (int i = 0; i < fitnessFunc.length; i++) {
 					// System.out.println("error : " + error[i]);
@@ -255,7 +263,7 @@ public class cihw2 extends Application {
 					System.out.println("looptimes break loop");
 					break;
 				}
-				if (avgError < errorLimit) {
+				if (bstGeneAvge < errorLimit) {
 					System.out.println("good error break");
 					break;
 				}
@@ -279,7 +287,7 @@ public class cihw2 extends Application {
 									// The function for the final round
 
 									// Tune car's position and angle
-									car.tuneCar(canvasPane, geneArray, bstErrorNo);
+									car.tuneCar(canvasPane, bestGene);
 									initialSetSensorsLine();
 
 								}
@@ -388,7 +396,7 @@ public class cihw2 extends Application {
 			pool.add(geneInfoArray.get(i));
 		}
 		
-		int getEighty = geneInfoArray.size() * 9 / 10; 
+		int getEighty = geneInfoArray.size() *  9 / 10; 
 //		int getEighty = geneInfoArray.size(); 
 
 		for(int i=getHalf;i<getEighty;i++){
@@ -402,9 +410,117 @@ public class cihw2 extends Application {
 			double rj2 = sortedGene.get(r2).getFitnessValue();
 
 			if(rj1>= rj2){
+				
+				for (int j = 0; j < nPool.get(r1).size(); j++) {
+					for (int k = 0; k < nPool.get(r1).get(j).length; k++) {
+						Random rand = new Random();
+						double temp = 0;
+
+						if (Math.random() > 0.5) {
+							temp = (rand.nextFloat() + 0f);
+						} else {
+							temp = (rand.nextFloat() - 1f);
+						}
+
+						temp = temp * (1-iteration/looptimes);
+
+						if (j == 0) {
+
+							double judge = nPool.get(r1).get(j)[k] + temp;
+							if (judge > 1 || judge < 0) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r1).get(j)[k] = judge;
+							}
+
+						} else if (j == 1) {
+							double judge = nPool.get(r1).get(j)[k] + temp;
+							if (judge > 40 || judge < -40) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r1).get(j)[k] = judge;
+							}
+
+						} else if (j == 2) {
+							double judge = nPool.get(r1).get(j)[k] + temp;
+							if (judge > 30 || judge < 0) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r1).get(j)[k] = judge;
+							}
+
+						} else {
+							double judge = nPool.get(r1).get(j)[k] + temp;
+							if (judge > 10 || judge < 0) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r1).get(j)[k] = judge;
+							}
+
+						}
+					}
+				}
+
 				pool.add(nPool.get(r1));
 			}
 			else{
+				for (int j = 0; j < nPool.get(r2).size(); j++) {
+					for (int k = 0; k < nPool.get(r2).get(j).length; k++) {
+						Random rand = new Random();
+						double temp = 0;
+
+						if (Math.random() > 0.5) {
+							temp = (rand.nextFloat() + 0f);
+						} else {
+							temp = (rand.nextFloat() - 1f);
+						}
+
+						temp = temp * (1-iteration/looptimes);
+
+						if (j == 0) {
+
+							double judge = nPool.get(r2).get(j)[k] + temp;
+							if (judge > 1 || judge < 0) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r2).get(j)[k] = judge;
+							}
+
+						} else if (j == 1) {
+							double judge = nPool.get(r2).get(j)[k] + temp;
+							if (judge > 40 || judge < -40) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r2).get(j)[k] = judge;
+							}
+
+						} else if (j == 2) {
+							double judge = nPool.get(r2).get(j)[k] + temp;
+							if (judge > 30 || judge < 0) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r2).get(j)[k] = judge;
+							}
+
+						} else {
+							double judge = nPool.get(r2).get(j)[k] + temp;
+							if (judge > 10 || judge < 0) {
+								// complete reproduction
+							} else {
+								// add some noise
+								nPool.get(r2).get(j)[k] = judge;
+							}
+
+						}
+					}
+				}
 				pool.add(nPool.get(r2));
 			}
 		}
@@ -589,7 +705,7 @@ public class cihw2 extends Application {
 		}
 
 		double doMutationProb = Math.random();
-		double randomNois = Math.random() / 100;
+		double randomNois = Math.random() ;
 
 		if (doMutationProb < mutationProb) {
 
