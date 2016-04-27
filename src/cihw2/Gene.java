@@ -13,6 +13,8 @@ public class Gene {
 	private ArrayList<double[]> mean;
 	private ArrayList<double[]> geneInfo;
 	private double fitnessValue;
+	private double avgError;
+
 	// 0:theta 1:weight 2:mean 3:sigma
 	public Gene() {
 		this.geneInfo = new ArrayList<double[]>();
@@ -48,7 +50,12 @@ public class Gene {
 		}
 
 	}
-
+	public double getAvgError(){
+		return this.avgError;
+	}
+	public void setAvgError(double inputAvgError){
+		this.avgError = inputAvgError;
+	}
 	public double getFitnessValue(){
 		return this.fitnessValue;
 	}

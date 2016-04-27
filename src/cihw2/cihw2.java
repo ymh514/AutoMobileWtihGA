@@ -1,8 +1,10 @@
 package cihw2;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -64,10 +66,15 @@ public class cihw2 extends Application {
 	private double bstGeneFit = Double.MAX_VALUE;
 	private double bstGeneAvge = Double.MAX_VALUE;
 	
+	private ArrayList<Gene> storeBstGene;
+	private ArrayList<ArrayList<double[]>> bestInfoArray;
+
 	static int aaa = 0;
 
 	private double[] rankS;
 	private double[] rank;
+
+	private int finalFlag = 0;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -91,14 +98,15 @@ public class cihw2 extends Application {
 		Button reset = new Button("Reset");
 		Button start = new Button("Start");
 		Button go = new Button("Go");
+		Button writeTest = new Button("write");
 		Label looptimesLabel = new Label("Looptimes :");
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
 		TextField looptimesText = new TextField("2000");
-		TextField groupSizeText = new TextField("2000");
+		TextField groupSizeText = new TextField("1000");
 		TextField crossoverProbText = new TextField("0.5");
-		TextField mutationProbText = new TextField("0.1");
+		TextField mutationProbText = new TextField("0.3");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		canvasPane.getChildren().add(car);
@@ -120,7 +128,7 @@ public class cihw2 extends Application {
 		ciPane.setLeft(infoBox);
 		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
 				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start, go, initialAngleSign,
-				slider, initialAngle, line3Dist, line1Dist, line2Dist, angleInfo);
+				slider, initialAngle, line3Dist, line1Dist, line2Dist, angleInfo,writeTest);
 
 		/*
 		 * Set sensor lines
@@ -128,6 +136,49 @@ public class cihw2 extends Application {
 
 		sensorLinesSetting();
 
+		
+		writeTest.setOnMouseClicked(evnet ->{
+			String pathName = "D:\\ciTrainData\\train.txt"; 
+            File output = new File(pathName); // 要读取以上路径的input。txt文件  
+            try {
+            	output.createNewFile();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				System.out.println("write error");
+				e.printStackTrace();
+			}
+            try {
+				BufferedWriter out = new BufferedWriter(new FileWriter(output));
+				
+								
+				int halfBest = geneInfoArray.size() / 2;
+//				int halfBest = 50;
+				for(int i=0;i<halfBest;i++){
+					for(int x=0;x<bestInfoArray.get(i).size();x++){
+						for(int y=0;y<bestInfoArray.get(i).get(x).length;y++){
+							double temp = bestInfoArray.get(i).get(x)[y];
+							out.write((double)Math.round(temp*10000000)/10000000+"\r");
+						}
+					}
+					out.newLine();
+				}
+
+//				for(int i=0;i<halfBest;i++){
+//					System.out.println(storeBstGene.get(i).getFitnessValue());
+//				}
+				
+				
+				
+				
+	            out.flush();   
+	            out.close();   
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  
+		});
+		
+		
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -203,50 +254,88 @@ public class cihw2 extends Application {
 					}
 
 					fitnessFunc[i] /= 2;
+					bstError[i] /= inputArray.size();
+					geneArray.get(i).setFitnessValue(fitnessFunc[i]);
+					geneArray.get(i).setAvgError(bstError[i]);
+
 				}
-
+				
 				// here's fitness function is smaller => better
-
+				// seems wrong;
 				rankTest(fitnessFunc);
 				
-				double bestFitnessIndex = rank[0];
-				double bestFitness = fitnessFunc[(int) rank[0]];
-				double bestAvgError = bstError[(int) rank[0]] / inputArray.size();
+				storeBstGene = new ArrayList<Gene>();
+				
+				for(int i=0;i<geneArray.size();i++){
+					for(int j=0;j<rank.length;j++){
+						if(i == rank[j]){
+							storeBstGene.add(geneArray.get(j));
+						}
+					}
+				}
+				bestInfoArray = new ArrayList<ArrayList<double[]>>();
+				for(int i=0;i<storeBstGene.size();i++){
+					bestInfoArray.add(storeBstGene.get(i).getGeneInfo());
+				}
+
+				
+				geneArray.clear();
+				for(int i=0;i<storeBstGene.size();i++){
+					geneArray.add(storeBstGene.get(i));
+				}
+//				geneArray = sortedGene;
+				
+				geneInfoArray = new ArrayList<ArrayList<double[]>>();
+				for(int i=0;i<geneArray.size();i++){
+					geneInfoArray.add(geneArray.get(i).getGeneInfo());
+				}
+
+				// multi bst
+//				for(int i=0;i<storeBstGene.size();i++){
+//					System.out.println(storeBstGene.get(i).getFitnessValue());
+//				}
+//				System.out.println("!!!!!!!!!!!!!!!");
+//				System.out.println("");
+
+
+				double bestFitnessIndex = 0;
+				double bestFitness = geneArray.get(0).getFitnessValue();
+				double bestAvgError = geneArray.get(0).getAvgError();
+				
 				avgError = bestAvgError;
 				bstErrorNo = (int) bestFitnessIndex;
+				
 				System.out.println(iteration+" avg: "+(double)Math.round(bestAvgError*1000)/1000+" BstG now :#"+bestFitnessIndex+" fitness :"+(double)Math.round(bestFitness*1000)/1000);
 				System.out.println("Now Best Gene avg :"+bstGeneAvge+" fit:"+bstGeneFit);
 
 				System.out.println("-------------------------------------");
-				
-				ArrayList<Gene> temp = (ArrayList<Gene>) geneArray.clone();
-				
+								
+				// one ast
 				if(bestAvgError < bstGeneAvge ){
-					bestGene = temp.get((int) bestFitnessIndex);
+					bestGene = geneArray.get((int) bestFitnessIndex);
 					bstGeneFit = bestFitness;
 					bstGeneAvge = bestAvgError;
-
 				}
 				
 
 				
-				double errorTotal = 0;
-				for (int i = 0; i < fitnessFunc.length; i++) {
-					// System.out.println("error : " + error[i]);
-					errorTotal += fitnessFunc[i];
-				}
-
-				double newTotal = 0;
-				for (int i = 0; i < fitnessFunc.length; i++) {
-					fitnessFunc[i] = Math.abs(fitnessFunc[i] - errorTotal);
-					newTotal += fitnessFunc[i];
-					// System.out.println("new error : " + error[i]);
-				}
-				for (int i = 0; i < fitnessFunc.length; i++) {
-					fitnessFunc[i] /= newTotal;
-					// System.out.println("normal error : " + error[i]);
-					geneArray.get(i).setFitnessValue(fitnessFunc[i]);
-				}
+//				double errorTotal = 0;
+//				for (int i = 0; i < fitnessFunc.length; i++) {
+//					// System.out.println("error : " + error[i]);
+//					errorTotal += fitnessFunc[i];
+//				}
+//
+//				double newTotal = 0;
+//				for (int i = 0; i < fitnessFunc.length; i++) {
+//					fitnessFunc[i] = Math.abs(fitnessFunc[i] - errorTotal);
+//					newTotal += fitnessFunc[i];
+//					// System.out.println("new error : " + error[i]);
+//				}
+//				for (int i = 0; i < fitnessFunc.length; i++) {
+//					fitnessFunc[i] /= newTotal;
+//					// System.out.println("normal error : " + error[i]);
+//					geneArray.get(i).setFitnessValue(fitnessFunc[i]);
+//				}
 
 				reproduction();
 
@@ -285,10 +374,23 @@ public class cihw2 extends Application {
 								@Override
 								public void run() {
 									// The function for the final round
+									if(car.getX()>18 && car.getY()>37){
+										System.out.println("!!!!!!!!!!!");
+										sensorLine1.setVisible(false);
+										sensorLine2.setVisible(false);
+										sensorLine3.setVisible(false);
 
-									// Tune car's position and angle
-									car.tuneCar(canvasPane, bestGene);
-									initialSetSensorsLine();
+										finalFlag = 1;
+									}
+
+									if(finalFlag == 1){
+										
+									}
+									else{
+										// Tune car's position and angle
+										car.tuneCar(canvasPane, bestGene);
+										initialSetSensorsLine();
+									}
 
 								}
 							});
@@ -296,6 +398,14 @@ public class cihw2 extends Application {
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
+						}
+						
+						if(finalFlag == 1){
+							sensorLine1.setVisible(false);
+							sensorLine2.setVisible(false);
+							sensorLine3.setVisible(false);
+
+							break;
 						}
 					}
 				}
@@ -321,6 +431,7 @@ public class cihw2 extends Application {
 	}
 
 	public void rankTest(double[] fitnessFunc) {
+				
 		rankS = new double[fitnessFunc.length];
 		rankS = fitnessFunc.clone();
 		rank = new double[rankS.length];
@@ -368,21 +479,29 @@ public class cihw2 extends Application {
 		pool = new ArrayList<ArrayList<double[]>>();
 		
 		
-		ArrayList<Gene> sortedGene = new ArrayList<Gene>();
-		for(int i=0;i<rank.length;i++){
-			sortedGene.add(geneArray.get((int) rank[i]));
-		}
-		
-		geneArray.clear();
-		for(int i=0;i<sortedGene.size();i++){
-			geneArray.add(sortedGene.get(i));
-		}
-//		geneArray = sortedGene;
-		
-		geneInfoArray = new ArrayList<ArrayList<double[]>>();
-		for(int i=0;i<geneArray.size();i++){
-			geneInfoArray.add(geneArray.get(i).getGeneInfo());
-		}
+//		ArrayList<Gene> sortedGene = new ArrayList<Gene>();
+////		for(int i=0;i<rank.length;i++){
+////			sortedGene.add(geneArray.get((int) rank[i]));
+////		}
+////		storeBstGene = new ArrayList<Gene>();
+//		for(int i=0;i<geneArray.size();i++){
+//			for(int j=0;j<rank.length;j++){
+//				if(i == rank[j]){
+//					sortedGene.add(geneArray.get(j));
+//				}
+//			}
+//		}
+
+//		geneArray.clear();
+//		for(int i=0;i<storeBstGene.size();i++){
+//			geneArray.add(storeBstGene.get(i));
+//		}
+////		geneArray = sortedGene;
+//		
+//		geneInfoArray = new ArrayList<ArrayList<double[]>>();
+//		for(int i=0;i<geneArray.size();i++){
+//			geneInfoArray.add(geneArray.get(i).getGeneInfo());
+//		}
 		
 		ArrayList<ArrayList<double[]>> nPool = new ArrayList<ArrayList<double[]>>();
 		
@@ -396,20 +515,20 @@ public class cihw2 extends Application {
 			pool.add(geneInfoArray.get(i));
 		}
 		
-		int getEighty = geneInfoArray.size() *  9 / 10; 
+		int getEighty = geneInfoArray.size() *  8 / 10; 
 //		int getEighty = geneInfoArray.size(); 
 
 		for(int i=getHalf;i<getEighty;i++){
 			int r1 = i;
-			int r2 = (int) Math.random() * (sortedGene.size() - 1);
+			int r2 = (int) Math.random() * (geneArray.size() - 1);
 			if (r1 == r2) {
-				r2 = (int) Math.random() * (sortedGene.size() - 1);
+				r2 = (int) Math.random() * (geneArray.size() - 1);
 			}
 
-			double rj1 = sortedGene.get(r1).getFitnessValue();
-			double rj2 = sortedGene.get(r2).getFitnessValue();
+			double rj1 = geneArray.get(r1).getFitnessValue();
+			double rj2 = geneArray.get(r2).getFitnessValue();
 
-			if(rj1>= rj2){
+			if(rj1 <= rj2){
 				
 				for (int j = 0; j < nPool.get(r1).size(); j++) {
 					for (int k = 0; k < nPool.get(r1).get(j).length; k++) {
@@ -575,7 +694,7 @@ public class cihw2 extends Application {
 			}
 
 			double distanceDef = Math.random();
-			double crossSigma = Math.random() / 100;
+			double crossSigma = Math.random();
 			double doCrossoverProb = Math.random();
 
 			if (doCrossoverProb < crossoverProb) {
@@ -707,8 +826,9 @@ public class cihw2 extends Application {
 		double doMutationProb = Math.random();
 		double randomNois = Math.random() ;
 
-		if (doMutationProb < mutationProb) {
-
+		int mutaProb = (int) (geneArray.size() * mutationProb);
+		
+		for(int k=0;k<mutaProb;k++){
 			int mutationNo = (int) Math.random() * (geneArray.size() - 1);
 
 			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
@@ -740,9 +860,43 @@ public class cihw2 extends Application {
 					}
 				}
 			}
-		} else {
 
 		}
+		
+//		if (doMutationProb < mutationProb) {
+//
+//			int mutationNo = (int) Math.random() * (geneArray.size() - 1);
+//
+//			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
+//				for (int j = 0; j < geneInfoArray.get(mutationNo).get(i).length; j++) {
+//					if (i == 0) {
+//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
+//						if (judge > 1 || judge < 0) {
+//						} else {
+//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
+//						}
+//					} else if (i == 1) {
+//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
+//						if (judge > 40 || judge < -40) {
+//						} else {
+//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
+//						}
+//					} else if (i == 2) {
+//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
+//						if (judge > 30 || judge < 0) {
+//						} else {
+//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
+//						}
+//					} else {
+//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
+//						if (judge > 10 || judge < 0) {
+//						} else {
+//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
+//						}
+//					}
+//				}
+//			}
+//		} 
 
 	}
 
