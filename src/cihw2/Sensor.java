@@ -162,8 +162,12 @@ public class Sensor {
 		return this.lineIntersection[i].getY();
 	}
 
-	public String getDist() {
-		String distInfo = " "+Math.round(this.closestLineDist * 1000.0) / 1000.0;
+	public double getDist() {
+		double distInfo = Math.round(this.closestLineDist * 1000.0) / 1000.0;
+		double dx = this.carX-this.x;
+		double dy = this.carY-this.y;
+		double distToCenter=Math.sqrt(dx*dx + dy*dy);
+		distInfo += distToCenter;
 		return distInfo;
 	}
 	public double transToCanvasX(double x) {

@@ -50,9 +50,15 @@ public class Car extends Circle {
 
 		// Calculate turn angle
 
-		double[] distance = { Double.parseDouble(this.sensor1.getDist()),
-				Double.parseDouble(this.sensor2.getDist()) ,
-				Double.parseDouble(this.sensor3.getDist())  };
+		double[] distance = { (this.sensor1.getDist()),
+				(this.sensor2.getDist()) ,
+				(this.sensor3.getDist())};
+		for(int i=0;i<distance.length;i++){
+			if(distance[i] > 30){
+				distance[i] = 30;
+			}
+		}
+		
 		if (startFlag != 0) {
 			double output = bestGene.calOutput(distance);
 //			System.out.println("output :"+output);
@@ -66,7 +72,7 @@ public class Car extends Circle {
 		//
 		System.out.println(" left : " + distance[2] + " middle :" + distance[0] + " right : " + distance[1]);
 		System.out.println(turnAngle);
-		// turnAngle = fuzzy.getTurnAngle();
+//		 turnAngle = fuzzy.getTurnAngle();
 		this.setX(this.getX()+Math.cos(Math.toRadians(angle + turnAngle)+Math.sin(Math.toRadians(turnAngle)*Math.sin(Math.toRadians(angle)))));
 		this.setY(this.getY()+Math.sin(Math.toRadians(angle + turnAngle)-Math.sin(Math.toRadians(turnAngle)*Math.cos(Math.toRadians(angle)))));
 

@@ -3,6 +3,7 @@ package cihw2;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -55,7 +56,7 @@ public class cihw2 extends Application {
 	private int bstErrorNo;
 	private double bstErrorValue;
 	private double errorLimit = 1;
-	private int drawAcelerate = 300;
+	private int drawAcelerate = 150;
 	private double initialAngleValue = 90;
 	private Label line1Dist = new Label("Red");
 	private Label line2Dist = new Label("Blue");
@@ -69,7 +70,6 @@ public class cihw2 extends Application {
 	private ArrayList<Gene> storeBstGene;
 	private ArrayList<ArrayList<double[]>> bestInfoArray;
 
-	static int aaa = 0;
 
 	private int finalFlag = 0;
 
@@ -102,8 +102,8 @@ public class cihw2 extends Application {
 		Label mutationProbLabel = new Label("Mutation Probability");
 		TextField looptimesText = new TextField("2000");
 		TextField groupSizeText = new TextField("1000");
-		TextField crossoverProbText = new TextField("0.5");
-		TextField mutationProbText = new TextField("0.3");
+		TextField crossoverProbText = new TextField("0.6");
+		TextField mutationProbText = new TextField("0.03");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		canvasPane.getChildren().add(car);
@@ -134,8 +134,11 @@ public class cihw2 extends Application {
 		sensorLinesSetting();
 
 		
+		
 		writeTest.setOnMouseClicked(evnet ->{
-			String pathName = "/Users/Terry/Desktop/train.txt"; 
+//			String pathName = "/Users/Terry/Desktop/train.txt"; 
+			String pathName = "D:\\ciTrainData\\train.txt"; 
+
             File output = new File(pathName); // 要读取以上路径的input。txt文件  
             try {
             	output.createNewFile();
@@ -214,11 +217,18 @@ public class cihw2 extends Application {
 				Gene tempGene = new Gene();
 				geneArray.add(tempGene);
 			}
+			
+			double[] fitnessFunc = new double[geneArray.size()];
+			double[] bstError = new double[geneArray.size()];
 
 			while (true) {
 
-				double[] fitnessFunc = new double[geneArray.size()];
-				double[] bstError = new double[geneArray.size()];
+				for(int i=0;i<fitnessFunc.length;i++){
+					fitnessFunc[i] = 0;
+				}
+				for(int i=0;i<bstError.length;i++){
+					bstError[i] = 0;
+				}
 
 				bstErrorNo = 0;
 				bstErrorValue = Double.MAX_VALUE;
@@ -287,9 +297,17 @@ public class cihw2 extends Application {
 				avgError = bestAvgError;
 				bstErrorNo = bestFitnessIndex;
 				
+				
+//				System.out.println(geneArray.size());
+//				System.out.println("-------------------------------------");
+//				for(int i=0;i<geneArray.size();i++){
+//					System.out.println(geneArray.get(i).getFitnessValue());
+//				}
+//				System.out.println("-------------------------------------");
+
+				
 				System.out.println(iteration+" avg: "+(double)Math.round(bestAvgError*1000)/1000+" BstG now :#"+bestFitnessIndex+" fitness :"+(double)Math.round(bestFitness*1000)/1000);
 				System.out.println("Now Best Gene avg :"+bstGeneAvge+" fit:"+bstGeneFit);
-
 				System.out.println("-------------------------------------");
 								
 				// one ast
@@ -351,6 +369,8 @@ public class cihw2 extends Application {
 									else{
 										// Tune car's position and angle
 										car.tuneCar(canvasPane, bestGene);
+//										car.tuneCar(canvasPane, storeBstGene.get(0));
+
 										initialSetSensorsLine();
 									}
 
@@ -460,21 +480,22 @@ public class cihw2 extends Application {
 			pool.add(geneInfoArray.get(i));
 		}
 		
-		int getEighty = geneInfoArray.size() *  8 / 10; 
+		int getEighty = geneInfoArray.size() *  75 / 100; 
 //		int getEighty = geneInfoArray.size(); 
 
 		for(int i=getHalf;i<getEighty;i++){
+			int amount = geneArray.size() -1;
 			int r1 = i-getHalf; // set back to 0
-			int r2 = (int) Math.random() * (geneArray.size() - 1);
+			int r2 = (int) Math.round(Math.random() * amount);
+			
 			if (r1 == r2) {
-				r2 = (int) Math.random() * (geneArray.size() - 1);
+				r2 = (int) Math.round(Math.random() * amount);
 			}
-
 			double rj1 = geneArray.get(r1).getFitnessValue();
 			double rj2 = geneArray.get(r2).getFitnessValue();
 
 			if(rj1 <= rj2){
-				
+
 				for (int j = 0; j < nPool.get(r1).size(); j++) {
 					for (int k = 0; k < nPool.get(r1).get(j).length; k++) {
 						Random rand = new Random();
@@ -532,6 +553,7 @@ public class cihw2 extends Application {
 				pool.add(nPool.get(r1));
 			}
 			else{
+
 				for (int j = 0; j < nPool.get(r2).size(); j++) {
 					for (int k = 0; k < nPool.get(r2).get(j).length; k++) {
 						Random rand = new Random();
@@ -631,10 +653,11 @@ public class cihw2 extends Application {
 		// crossover
 		for (int i = 0; i < pool.size(); i++) {
 			int crossNo1 = i;
-			Random rand = new Random();
-			int crossNo2 = rand.nextInt(pool.size() - 1);
-			while (crossNo2 == crossNo1) {
-				crossNo2 = rand.nextInt(pool.size() - 1);
+			int amount =pool.size()-1;
+			int crossNo2 = (int) Math.round(Math.random() * amount);
+			
+			if (crossNo2 == crossNo1) {
+				crossNo2 = (int) Math.round(Math.random() * amount);
 			}
 
 			double distanceDef = Math.random();
@@ -770,10 +793,11 @@ public class cihw2 extends Application {
 		double doMutationProb = Math.random();
 		double randomNois = Math.random() ;
 
-		int mutaProb = (int) (geneArray.size() * mutationProb);
+		int mutaLimit = (int) (geneArray.size() * mutationProb) - 1;
 		
-		for(int k=0;k<mutaProb;k++){
-			int mutationNo = (int) Math.random() * (geneArray.size() - 1);
+		for(int k=0;k<mutaLimit;k++){
+			int amount = geneArray.size()-1;
+			int mutationNo = (int) Math.round(Math.random() * amount);
 
 			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
 				for (int j = 0; j < geneInfoArray.get(mutationNo).get(i).length; j++) {
