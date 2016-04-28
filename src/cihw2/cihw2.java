@@ -55,7 +55,7 @@ public class cihw2 extends Application {
 	private double avgError;
 	private int bstErrorNo;
 	private double bstErrorValue;
-	private double errorLimit = 1;
+	private double errorLimit = 2;
 	private int drawAcelerate = 150;
 	private double initialAngleValue = 90;
 	private Label line1Dist = new Label("Red");
@@ -105,7 +105,7 @@ public class cihw2 extends Application {
 		TextField looptimesText = new TextField("2000");
 		TextField groupSizeText = new TextField("1000");
 		TextField crossoverProbText = new TextField("0.6");
-		TextField mutationProbText = new TextField("0.3");
+		TextField mutationProbText = new TextField("0.6");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		canvasPane.getChildren().add(car);
@@ -840,7 +840,7 @@ public class cihw2 extends Application {
 		}
 
 		double doMutationProb = Math.random();
-		double randomNois = Math.random() ;
+		double randomNois = 1;
 
 		int mutaLimit = (int) (geneArray.size() * mutationProb) - 1;
 		
