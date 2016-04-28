@@ -70,6 +70,7 @@ public class cihw2 extends Application {
 	private ArrayList<Gene> storeBstGene;
 	private ArrayList<ArrayList<double[]>> bestInfoArray;
 
+	private ArrayList<double[]> weightArray;
 
 	private int finalFlag = 0;
 
@@ -96,6 +97,7 @@ public class cihw2 extends Application {
 		Button start = new Button("Start");
 		Button go = new Button("Go");
 		Button writeTest = new Button("write");
+		Button loadWeight = new Button("Load");
 		Label looptimesLabel = new Label("Looptimes :");
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
@@ -103,7 +105,7 @@ public class cihw2 extends Application {
 		TextField looptimesText = new TextField("2000");
 		TextField groupSizeText = new TextField("1000");
 		TextField crossoverProbText = new TextField("0.6");
-		TextField mutationProbText = new TextField("0.03");
+		TextField mutationProbText = new TextField("0.3");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		canvasPane.getChildren().add(car);
@@ -123,7 +125,7 @@ public class cihw2 extends Application {
 
 		ciPane.setRight(canvasPane);
 		ciPane.setLeft(infoBox);
-		infoBox.getChildren().addAll(loadFile, reset, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
+		infoBox.getChildren().addAll(loadFile, reset,loadWeight, looptimesLabel, looptimesText, groupSizeLabel, groupSizeText,
 				crossoverProbLabel, crossoverProbText, mutationProbLabel, mutationProbText, start, go, initialAngleSign,
 				slider, initialAngle, line3Dist, line1Dist, line2Dist, angleInfo,writeTest);
 
@@ -137,7 +139,7 @@ public class cihw2 extends Application {
 		
 		writeTest.setOnMouseClicked(evnet ->{
 //			String pathName = "/Users/Terry/Desktop/train.txt"; 
-			String pathName = "D:\\ciTrainData\\train.txt"; 
+			String pathName = "src/train/train.txt"; 
 
             File output = new File(pathName); // 要读取以上路径的input。txt文件  
             try {
@@ -194,14 +196,8 @@ public class cihw2 extends Application {
 				e.printStackTrace();
 
 			}
-			// inputDataNormalize();
-			// drawPath(inputArray);
-		});
-
-		start.setOnMouseClicked(event -> {
-			iteration = 0;
-			avgError = Double.MAX_VALUE;
-
+			
+			geneArray = new ArrayList<Gene>();
 			geneInfoArray = new ArrayList<ArrayList<double[]>>();
 			pool = new ArrayList<ArrayList<double[]>>();
 
@@ -210,13 +206,66 @@ public class cihw2 extends Application {
 			this.crossoverProb = Double.parseDouble(crossoverProbText.getText());
 			this.mutationProb = Double.parseDouble(mutationProbText.getText());
 
-			// generate gene
-			geneArray = new ArrayList<Gene>();
 
 			for (int i = 0; i < groupSize; i++) {
 				Gene tempGene = new Gene();
 				geneArray.add(tempGene);
 			}
+
+			// inputDataNormalize();
+			// drawPath(inputArray);
+		});
+		loadWeight.setOnMouseClicked(event ->{
+			weightArray = new ArrayList<double[]>();
+			try {
+				weightChoose(null);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				System.out.println("Cancel");
+				e.printStackTrace();
+			}
+			for(int i=0;i<weightArray.size();i++){
+				ArrayList<double[]> tempArray = new ArrayList<double[]>();
+				int neuron = 3;
+				double[] weight = new double[neuron];
+				double[] theta = new double[1];
+				double[] sigma = new double[neuron];
+				double[] mean = new double[neuron * neuron];
+				
+				int count = 0;
+				theta[0] = weightArray.get(i)[count];
+				count++;
+				for (int a = 0; a < neuron; a++) {
+					weight[a] = weightArray.get(i)[count];
+					count++;
+				}
+				
+				for (int b = 0; b < mean.length; b++) {
+					mean[b] = weightArray.get(i)[count];
+					count++;
+				}
+				for (int a = 0; a < neuron; a++) {
+					sigma[a] = weightArray.get(i)[count];
+					count++;
+				}
+
+				tempArray.add(theta);
+				tempArray.add(weight);
+				tempArray.add(mean);
+				tempArray.add(sigma);
+				
+				geneArray.get(i).updateGeneInfo(tempArray);
+			}
+			
+
+			
+//			printArrayData(weightArray);
+		});
+		start.setOnMouseClicked(event -> {
+			iteration = 0;
+			avgError = Double.MAX_VALUE;
+			
+			// generate gene
 			
 			double[] fitnessFunc = new double[geneArray.size()];
 			double[] bstError = new double[geneArray.size()];
@@ -470,7 +519,7 @@ public class cihw2 extends Application {
 				
 		ArrayList<ArrayList<double[]>> nPool = new ArrayList<ArrayList<double[]>>();
 		
-		int getHalf = geneInfoArray.size() / 2;
+		int getHalf = geneInfoArray.size() *2/5;
 
 		for(int i=0;i<geneInfoArray.size();i++){
 			nPool.add(geneInfoArray.get(i));
@@ -480,7 +529,7 @@ public class cihw2 extends Application {
 			pool.add(geneInfoArray.get(i));
 		}
 		
-		int getEighty = geneInfoArray.size() *  75 / 100; 
+		int getEighty = geneInfoArray.size() *  80 / 100; 
 //		int getEighty = geneInfoArray.size(); 
 
 		for(int i=getHalf;i<getEighty;i++){
@@ -938,6 +987,46 @@ public class cihw2 extends Application {
 
 		canvasPane.getChildren().addAll(sensorLine1, sensorLine2, sensorLine3);
 
+	}
+	public void weightChoose(String[] args) throws IOException {
+		/*
+		 * show a file stage for choose file
+		 */
+
+		Stage fileStage = new Stage();
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Open Resource File");
+		fileChooser.setInitialDirectory(new File("src/train"));
+
+		File file = fileChooser.showOpenDialog(fileStage);
+		// System.out.println(file);
+
+		FileReader fr = new FileReader(file);
+		BufferedReader br = new BufferedReader(fr);// 在br.ready反查輸入串流的狀況是否有資料
+
+		String txt;
+		while ((txt = br.readLine()) != null) {
+			/*
+			 * If there is space before split(), it will cause the error So, we
+			 * could to use trim() to remove the space at the beginning and the
+			 * end. Then split the result, which doesn't include the space at
+			 * the beginning and the end. "\\s+" would match any of space, as
+			 * you don't have to consider the number of space in the string
+			 */
+			String[] token = txt.trim().split("\\s+");// <-----背起來
+			// String[] token = txt.split(" ");//<-----original split
+			double[] token2 = new double[token.length];// 宣告float[]
+
+			try {
+				for (int i = 0; i < token.length; i++) {
+					token2[i] = Float.parseFloat(token[i]);
+				} // 把token(string)轉乘token2(float)
+				weightArray.add(token2);// 把txt裡面內容先切割過在都讀進array內
+			} catch (NumberFormatException ex) {
+				System.out.println("Sorry Error...");
+			}
+		}
+		fr.close();// 關閉檔案
 	}
 
 	public void inputFileChoose(String[] args, Button loadFile) throws IOException {

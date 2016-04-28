@@ -71,7 +71,9 @@ public class Car extends Circle {
 		// turnAngle *= -1;
 		//
 		System.out.println(" left : " + distance[2] + " middle :" + distance[0] + " right : " + distance[1]);
-		System.out.println(turnAngle);
+		System.out.println("turnAngle : "+turnAngle+ " now's Angle :"+angle);
+		System.out.println("===========================================");
+
 //		 turnAngle = fuzzy.getTurnAngle();
 		this.setX(this.getX()+Math.cos(Math.toRadians(angle + turnAngle)+Math.sin(Math.toRadians(turnAngle)*Math.sin(Math.toRadians(angle)))));
 		this.setY(this.getY()+Math.sin(Math.toRadians(angle + turnAngle)-Math.sin(Math.toRadians(turnAngle)*Math.cos(Math.toRadians(angle)))));
