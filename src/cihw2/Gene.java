@@ -12,9 +12,11 @@ public class Gene {
 	private double[] sigma;
 	private ArrayList<double[]> mean;
 	private ArrayList<double[]> geneInfo;
+	
 	private double fitnessValue;
 	private double avgError;
-
+	private int fitnessRank = Integer.MAX_VALUE;
+	
 	// 0:theta 1:weight 2:mean 3:sigma
 	public Gene() {
 		this.geneInfo = new ArrayList<double[]>();
@@ -49,6 +51,12 @@ public class Gene {
 			sigma[i] = Math.random() * 10;
 		}
 
+	}
+	public int getFitnessRank(){
+		return this.fitnessRank;
+	}
+	public void setFitnessRank(int rank){
+		this.fitnessRank = rank;
 	}
 	public double getAvgError(){
 		return this.avgError;
@@ -100,45 +108,7 @@ public class Gene {
 		return returnValue;
 	}
 
-//	public void setData(){
-//		this.geneInfo.clear();
-//		
-//		this.geneInfo.add(theta);
-//		
-//		this.geneInfo.add(weight);
-//		
-//		double[] temp = new double[mean.size()*mean.get(0).length];
-//		int count =0;
-//		for(int i=0;i<mean.size();i++){
-//			for(int j=0;j<mean.get(i).length;j++){
-//				temp[count] = mean.get(i)[j];
-//				count ++;
-//			}
-//		}
-//		this.geneInfo.add(temp);
-//		
-//		this.geneInfo.add(sigma);
-//		
-//	}
-////	public void updateData(){
-////		int nowCount = 0;
-////		for(int i=0;i<weight.length;i++){
-////			this.infoArray[nowCount] = weight[i];	
-////			nowCount++;
-////		}
-////		for(int i=0;i<mean.size();i++){
-////			for(int j=0;j<mean.get(i).length;j++){
-////				this.infoArray[nowCount] = mean.get(i)[j];
-////				nowCount++;
-////			}
-////		}
-////		for(int i=0;i<sigma.length;i++){
-////			this.infoArray[nowCount] = sigma[i];
-////			nowCount++;
-////		}
-////
-////	}
-	
+
 	public void updateGeneInfo(ArrayList<double[]> newGeneInfo){
 		
 		for(int i=0;i<newGeneInfo.size();i++){

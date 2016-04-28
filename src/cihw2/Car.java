@@ -43,6 +43,7 @@ public class Car extends Circle {
 		sensor3 = new Sensor(this.getX()+(3*Math.cos(Math.toRadians(angle+45))), this.getY()+(3*Math.sin(Math.toRadians(angle+45))),this.getX(),this.getY());
 		// + means left
 
+
 	}
 
 	public void tuneCar(Canvas canvasPane, Gene bestGene) {
@@ -153,6 +154,7 @@ public class Car extends Circle {
 		this.sensor3.setY(this.getY() + (3 * Math.sin(Math.toRadians(angleForS3))));
 
 		setSensorsCarCoordinate(this.getX(), this.getY());
+
 	}
 
 	public void setSensorsCarCoordinate(double x, double y) {

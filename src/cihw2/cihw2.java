@@ -71,9 +71,6 @@ public class cihw2 extends Application {
 
 	static int aaa = 0;
 
-	private double[] rankS;
-	private double[] rank;
-
 	private int finalFlag = 0;
 
 	@Override
@@ -138,7 +135,7 @@ public class cihw2 extends Application {
 
 		
 		writeTest.setOnMouseClicked(evnet ->{
-			String pathName = "D:\\ciTrainData\\train.txt"; 
+			String pathName = "/Users/Terry/Desktop/train.txt"; 
             File output = new File(pathName); // 要读取以上路径的input。txt文件  
             try {
             	output.createNewFile();
@@ -151,24 +148,17 @@ public class cihw2 extends Application {
 				BufferedWriter out = new BufferedWriter(new FileWriter(output));
 				
 								
-				int halfBest = geneInfoArray.size() / 2;
+				int halfBest = bestInfoArray.size() / 2;
 //				int halfBest = 50;
 				for(int i=0;i<halfBest;i++){
 					for(int x=0;x<bestInfoArray.get(i).size();x++){
 						for(int y=0;y<bestInfoArray.get(i).get(x).length;y++){
 							double temp = bestInfoArray.get(i).get(x)[y];
-							out.write((double)Math.round(temp*10000000)/10000000+"\r");
+							out.write((double)Math.round(temp*10000000)/10000000+"	");
 						}
 					}
 					out.newLine();
 				}
-
-//				for(int i=0;i<halfBest;i++){
-//					System.out.println(storeBstGene.get(i).getFitnessValue());
-//				}
-				
-				
-				
 				
 	            out.flush();   
 	            out.close();   
@@ -232,12 +222,9 @@ public class cihw2 extends Application {
 
 				bstErrorNo = 0;
 				bstErrorValue = Double.MAX_VALUE;
-
-//				geneInfoArray = new ArrayList<ArrayList<double[]>>();
 				avgError = 0;
 
 				for (int i = 0; i < geneArray.size(); i++) {
-
 					for (int j = 0; j < inputArray.size(); j++) {
 						double[] distance = new double[3];
 						double desire = inputArray.get(j)[inputArray.get(j).length - 1];
@@ -249,8 +236,8 @@ public class cihw2 extends Application {
 						double output = geneArray.get(i).calOutput(distance);
 						double errorTemp = Math.pow((desire - output), 2);
 						double avgETemp = Math.abs(desire - output);
-						bstError[i] += avgETemp;
 						fitnessFunc[i] += errorTemp;
+						bstError[i] += avgETemp;
 					}
 
 					fitnessFunc[i] /= 2;
@@ -262,48 +249,43 @@ public class cihw2 extends Application {
 				
 				// here's fitness function is smaller => better
 				// seems wrong;
-				rankTest(fitnessFunc);
 				
+				
+				rankSort();
+				
+				// store sortedGene back to geneArray
 				storeBstGene = new ArrayList<Gene>();
 				
 				for(int i=0;i<geneArray.size();i++){
-					for(int j=0;j<rank.length;j++){
-						if(i == rank[j]){
+					for(int j=0;j<geneArray.size();j++){
+						if(i == geneArray.get(j).getFitnessRank()){
 							storeBstGene.add(geneArray.get(j));
 						}
-					}
+					}					
 				}
+				
 				bestInfoArray = new ArrayList<ArrayList<double[]>>();
 				for(int i=0;i<storeBstGene.size();i++){
 					bestInfoArray.add(storeBstGene.get(i).getGeneInfo());
 				}
-
 				
 				geneArray.clear();
 				for(int i=0;i<storeBstGene.size();i++){
 					geneArray.add(storeBstGene.get(i));
 				}
-//				geneArray = sortedGene;
 				
 				geneInfoArray = new ArrayList<ArrayList<double[]>>();
 				for(int i=0;i<geneArray.size();i++){
 					geneInfoArray.add(geneArray.get(i).getGeneInfo());
 				}
 
-				// multi bst
-//				for(int i=0;i<storeBstGene.size();i++){
-//					System.out.println(storeBstGene.get(i).getFitnessValue());
-//				}
-//				System.out.println("!!!!!!!!!!!!!!!");
-//				System.out.println("");
 
-
-				double bestFitnessIndex = 0;
-				double bestFitness = geneArray.get(0).getFitnessValue();
-				double bestAvgError = geneArray.get(0).getAvgError();
+				int bestFitnessIndex = 0;
+				double bestFitness = geneArray.get(bestFitnessIndex).getFitnessValue();
+				double bestAvgError = geneArray.get(bestFitnessIndex).getAvgError();
 				
 				avgError = bestAvgError;
-				bstErrorNo = (int) bestFitnessIndex;
+				bstErrorNo = bestFitnessIndex;
 				
 				System.out.println(iteration+" avg: "+(double)Math.round(bestAvgError*1000)/1000+" BstG now :#"+bestFitnessIndex+" fitness :"+(double)Math.round(bestFitness*1000)/1000);
 				System.out.println("Now Best Gene avg :"+bstGeneAvge+" fit:"+bstGeneFit);
@@ -312,30 +294,10 @@ public class cihw2 extends Application {
 								
 				// one ast
 				if(bestAvgError < bstGeneAvge ){
-					bestGene = geneArray.get((int) bestFitnessIndex);
-					bstGeneFit = bestFitness;
-					bstGeneAvge = bestAvgError;
+					bestGene = geneArray.get(bestFitnessIndex);
+					bstGeneFit = bestGene.getFitnessValue();
+					bstGeneAvge = bestGene.getAvgError();
 				}
-				
-
-				
-//				double errorTotal = 0;
-//				for (int i = 0; i < fitnessFunc.length; i++) {
-//					// System.out.println("error : " + error[i]);
-//					errorTotal += fitnessFunc[i];
-//				}
-//
-//				double newTotal = 0;
-//				for (int i = 0; i < fitnessFunc.length; i++) {
-//					fitnessFunc[i] = Math.abs(fitnessFunc[i] - errorTotal);
-//					newTotal += fitnessFunc[i];
-//					// System.out.println("new error : " + error[i]);
-//				}
-//				for (int i = 0; i < fitnessFunc.length; i++) {
-//					fitnessFunc[i] /= newTotal;
-//					// System.out.println("normal error : " + error[i]);
-//					geneArray.get(i).setFitnessValue(fitnessFunc[i]);
-//				}
 
 				reproduction();
 
@@ -430,41 +392,44 @@ public class cihw2 extends Application {
 
 	}
 
-	public void rankTest(double[] fitnessFunc) {
-				
-		rankS = new double[fitnessFunc.length];
-		rankS = fitnessFunc.clone();
-		rank = new double[rankS.length];
-
-		Arrays.sort(rankS);
-
-		double[] ban = new double[fitnessFunc.length];
-		for (int i = 0; i < ban.length; i++) {
-			ban[i] = Double.MAX_VALUE;
+	public void rankSort() {
+		
+		double[] readyToSort = new double[geneArray.size()];
+		int[] sortedRank = new int[geneArray.size()];
+		
+		for(int i=0;i<geneArray.size();i++){
+			readyToSort[i] = geneArray.get(i).getFitnessValue();
 		}
 
+		Arrays.sort(readyToSort);
+		
+		double[] used = new double[geneArray.size()];
+		for (int i = 0; i < used.length; i++) {
+			used[i] = Double.MAX_VALUE;
+		}
+		
 		int count = 0;
-		f1: for (int i = 0; i < rankS.length; i++) {
-			f2: for (int j = 0; j < fitnessFunc.length; j++) {
+		f1: for (int i = 0; i < readyToSort.length; i++) {
+			f2: for (int j = 0; j < geneArray.size(); j++) {
 				if (count == 0) {
-					if (rankS[i] == fitnessFunc[j]) {
-						ban[count] = j;
-						rank[j] = i;
+					if (readyToSort[i] == geneArray.get(j).getFitnessValue()) {
+						used[count] = j;
+						sortedRank[j] = i;
 						count++;
 						break f2;
 					}
 				} else {
-					if (rankS[i] == fitnessFunc[j]) {
+					if (readyToSort[i] == geneArray.get(j).getFitnessValue()) {
 						int findFlag = 0;
-						f3: for (int k = 0; k < ban.length; k++) {
-							if (ban[k] == j) {
+						f3: for (int k = 0; k < used.length; k++) {
+							if (used[k] == j) {
 								findFlag = 1;
 								break f3;
 							}
 						}
 						if (findFlag != 1) {
-							ban[count] = j;
-							rank[j] = i;
+							used[count] = j;
+							sortedRank[j] = i;
 							count++;
 							break f2;
 						}
@@ -472,37 +437,17 @@ public class cihw2 extends Application {
 				}
 			}
 		}
+		
+		for(int i=0;i<sortedRank.length;i++){
+			geneArray.get(i).setFitnessRank(sortedRank[i]);
+		}
+		
 	}
 
 	public void reproduction() {
 
 		pool = new ArrayList<ArrayList<double[]>>();
-		
-		
-//		ArrayList<Gene> sortedGene = new ArrayList<Gene>();
-////		for(int i=0;i<rank.length;i++){
-////			sortedGene.add(geneArray.get((int) rank[i]));
-////		}
-////		storeBstGene = new ArrayList<Gene>();
-//		for(int i=0;i<geneArray.size();i++){
-//			for(int j=0;j<rank.length;j++){
-//				if(i == rank[j]){
-//					sortedGene.add(geneArray.get(j));
-//				}
-//			}
-//		}
-
-//		geneArray.clear();
-//		for(int i=0;i<storeBstGene.size();i++){
-//			geneArray.add(storeBstGene.get(i));
-//		}
-////		geneArray = sortedGene;
-//		
-//		geneInfoArray = new ArrayList<ArrayList<double[]>>();
-//		for(int i=0;i<geneArray.size();i++){
-//			geneInfoArray.add(geneArray.get(i).getGeneInfo());
-//		}
-		
+				
 		ArrayList<ArrayList<double[]>> nPool = new ArrayList<ArrayList<double[]>>();
 		
 		int getHalf = geneInfoArray.size() / 2;
@@ -519,7 +464,7 @@ public class cihw2 extends Application {
 //		int getEighty = geneInfoArray.size(); 
 
 		for(int i=getHalf;i<getEighty;i++){
-			int r1 = i;
+			int r1 = i-getHalf; // set back to 0
 			int r2 = (int) Math.random() * (geneArray.size() - 1);
 			if (r1 == r2) {
 				r2 = (int) Math.random() * (geneArray.size() - 1);
@@ -684,7 +629,6 @@ public class cihw2 extends Application {
 
 	public void crossover() {
 		// crossover
-		// int crossNo1 = (int)Math.random()*(pool.size() - 1);
 		for (int i = 0; i < pool.size(); i++) {
 			int crossNo1 = i;
 			Random rand = new Random();
@@ -863,40 +807,7 @@ public class cihw2 extends Application {
 
 		}
 		
-//		if (doMutationProb < mutationProb) {
-//
-//			int mutationNo = (int) Math.random() * (geneArray.size() - 1);
-//
-//			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
-//				for (int j = 0; j < geneInfoArray.get(mutationNo).get(i).length; j++) {
-//					if (i == 0) {
-//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
-//						if (judge > 1 || judge < 0) {
-//						} else {
-//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
-//						}
-//					} else if (i == 1) {
-//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
-//						if (judge > 40 || judge < -40) {
-//						} else {
-//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
-//						}
-//					} else if (i == 2) {
-//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
-//						if (judge > 30 || judge < 0) {
-//						} else {
-//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
-//						}
-//					} else {
-//						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
-//						if (judge > 10 || judge < 0) {
-//						} else {
-//							geneInfoArray.get(mutationNo).get(i)[j] = judge;
-//						}
-//					}
-//				}
-//			}
-//		} 
+
 
 	}
 
