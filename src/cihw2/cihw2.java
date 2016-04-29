@@ -100,10 +100,10 @@ public class cihw2 extends Application {
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
-		TextField looptimesText = new TextField("500");
-		TextField groupSizeText = new TextField("200");
+		TextField looptimesText = new TextField("1000");
+		TextField groupSizeText = new TextField("500");
 		TextField crossoverProbText = new TextField("0.6");
-		TextField mutationProbText = new TextField("0.3");
+		TextField mutationProbText = new TextField("0.2");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		canvasPane.getChildren().add(car);
@@ -196,9 +196,9 @@ public class cihw2 extends Application {
 				
 			}
 			for(int i=0;i<inputArray.size();i++){
-				for(int j=0;j<inputArray.get(i).length;j++){
+//				for(int j=0;j<inputArray.get(i).length;j++){
 					inputArray.get(i)[inputArray.get(0).length-1] = inputArray.get(i)[inputArray.get(0).length-1]*-1;
-				}
+//				}
 			}
 
 			geneArray = new ArrayList<Gene>();
@@ -536,7 +536,7 @@ public class cihw2 extends Application {
 			pool.add(geneInfoArray.get(i));
 		}
 		
-		int getEighty = geneInfoArray.size() *  80 / 100; 
+		int getEighty = geneInfoArray.size() *  75 / 100; 
 //		int getEighty = geneInfoArray.size(); 
 
 		for(int i=getHalf;i<getEighty;i++){
