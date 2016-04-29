@@ -40,8 +40,8 @@ public class cihw2 extends Application {
 	private Line sensorLine1;
 	private Line sensorLine2;
 	private Line sensorLine3;
-	private double startPointX = 30;
-	private double startPointY = 52;
+	private double startPointX = 0;
+	private double startPointY = 0;
 	private int ratio = 10;
 	public ArrayList<double[]> inputArray;
 	private ArrayList<Gene> geneArray;
@@ -55,15 +55,15 @@ public class cihw2 extends Application {
 	private double avgError;
 	private int bstErrorNo;
 	private double bstErrorValue;
-	private double errorLimit = 2;
-	private int drawAcelerate = 150;
+	private double errorLimit = 1.5;
+	private int drawAcelerate = 100;
 	private double initialAngleValue = 90;
 	private Label line1Dist = new Label("Red");
 	private Label line2Dist = new Label("Blue");
 	private Label line3Dist = new Label("Green");
 	private Label angleInfo = new Label("");
 	
-	private Gene bestGene;
+	private ArrayList<Gene> bestGene;
 	private double bstGeneFit = Double.MAX_VALUE;
 	private double bstGeneAvge = Double.MAX_VALUE;
 	
@@ -86,9 +86,7 @@ public class cihw2 extends Application {
 		canvasPane = new Canvas();
 		car = new Car(this.canvasPane);
 		
-		
-		bestGene = new Gene();
-		
+		bestGene = new ArrayList<Gene>();
 		
 		BorderPane ciPane = new BorderPane();
 		VBox infoBox = new VBox(10);
@@ -102,10 +100,10 @@ public class cihw2 extends Application {
 		Label groupSizeLabel = new Label("Group size :");
 		Label crossoverProbLabel = new Label("Crossover Probability");
 		Label mutationProbLabel = new Label("Mutation Probability");
-		TextField looptimesText = new TextField("2000");
-		TextField groupSizeText = new TextField("1000");
+		TextField looptimesText = new TextField("500");
+		TextField groupSizeText = new TextField("200");
 		TextField crossoverProbText = new TextField("0.6");
-		TextField mutationProbText = new TextField("0.6");
+		TextField mutationProbText = new TextField("0.3");
 
 		infoBox.setPadding(new Insets(15, 50, 15, 15));
 		canvasPane.getChildren().add(car);
@@ -190,13 +188,19 @@ public class cihw2 extends Application {
 			inputArray.clear();
 			try {
 				inputFileChoose(null, loadFile);
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				System.out.println("Cancel");
 				e.printStackTrace();
-
+				
 			}
-			
+			for(int i=0;i<inputArray.size();i++){
+				for(int j=0;j<inputArray.get(i).length;j++){
+					inputArray.get(i)[inputArray.get(0).length-1] = inputArray.get(i)[inputArray.get(0).length-1]*-1;
+				}
+			}
+
 			geneArray = new ArrayList<Gene>();
 			geneInfoArray = new ArrayList<ArrayList<double[]>>();
 			pool = new ArrayList<ArrayList<double[]>>();
@@ -226,11 +230,11 @@ public class cihw2 extends Application {
 			}
 			for(int i=0;i<weightArray.size();i++){
 				ArrayList<double[]> tempArray = new ArrayList<double[]>();
-				int neuron = 3;
+				int neuron = 9;
 				double[] weight = new double[neuron];
 				double[] theta = new double[1];
 				double[] sigma = new double[neuron];
-				double[] mean = new double[neuron * neuron];
+				double[] mean = new double[3 * neuron];
 				
 				int count = 0;
 				theta[0] = weightArray.get(i)[count];
@@ -284,6 +288,7 @@ public class cihw2 extends Application {
 				avgError = 0;
 
 				for (int i = 0; i < geneArray.size(); i++) {
+
 					for (int j = 0; j < inputArray.size(); j++) {
 						double[] distance = new double[3];
 						double desire = inputArray.get(j)[inputArray.get(j).length - 1];
@@ -292,7 +297,9 @@ public class cihw2 extends Application {
 						distance[1] = inputArray.get(j)[1];
 						distance[2] = inputArray.get(j)[2];
 
+						
 						double output = geneArray.get(i).calOutput(distance);
+
 						double errorTemp = Math.pow((desire - output), 2);
 						double avgETemp = Math.abs(desire - output);
 						fitnessFunc[i] += errorTemp;
@@ -322,7 +329,6 @@ public class cihw2 extends Application {
 						}
 					}					
 				}
-				
 				bestInfoArray = new ArrayList<ArrayList<double[]>>();
 				for(int i=0;i<storeBstGene.size();i++){
 					bestInfoArray.add(storeBstGene.get(i).getGeneInfo());
@@ -332,7 +338,7 @@ public class cihw2 extends Application {
 				for(int i=0;i<storeBstGene.size();i++){
 					geneArray.add(storeBstGene.get(i));
 				}
-				
+
 				geneInfoArray = new ArrayList<ArrayList<double[]>>();
 				for(int i=0;i<geneArray.size();i++){
 					geneInfoArray.add(geneArray.get(i).getGeneInfo());
@@ -355,16 +361,17 @@ public class cihw2 extends Application {
 //				System.out.println("-------------------------------------");
 
 				
-				System.out.println(iteration+" avg: "+(double)Math.round(bestAvgError*1000)/1000+" BstG now :#"+bestFitnessIndex+" fitness :"+(double)Math.round(bestFitness*1000)/1000);
-				System.out.println("Now Best Gene avg :"+bstGeneAvge+" fit:"+bstGeneFit);
-				System.out.println("-------------------------------------");
 								
 				// one ast
 				if(bestAvgError < bstGeneAvge ){
-					bestGene = geneArray.get(bestFitnessIndex);
-					bstGeneFit = bestGene.getFitnessValue();
-					bstGeneAvge = bestGene.getAvgError();
+					bestGene.add(storeBstGene.get(bestFitnessIndex));
+					bstGeneFit = bestGene.get(bestGene.size()-1).getFitnessValue();
+					bstGeneAvge = bestGene.get(bestGene.size()-1).getAvgError();
 				}
+				
+				System.out.println(iteration+" avg: "+(double)Math.round(bestAvgError*1000)/1000+" BstG now :#"+bestFitnessIndex+" fitness :"+(double)Math.round(bestFitness*1000)/1000);
+				System.out.println("Now Best Gene avg :"+bstGeneAvge+" fit:"+bstGeneFit);
+				System.out.println("-------------------------------------");
 
 				reproduction();
 
@@ -405,9 +412,9 @@ public class cihw2 extends Application {
 									// The function for the final round
 									if(car.getX()>18 && car.getY()>37){
 										System.out.println("!!!!!!!!!!!");
-										sensorLine1.setVisible(false);
-										sensorLine2.setVisible(false);
-										sensorLine3.setVisible(false);
+//										sensorLine1.setVisible(false);
+//										sensorLine2.setVisible(false);
+//										sensorLine3.setVisible(false);
 
 										finalFlag = 1;
 									}
@@ -417,7 +424,7 @@ public class cihw2 extends Application {
 									}
 									else{
 										// Tune car's position and angle
-										car.tuneCar(canvasPane, bestGene);
+										car.tuneCar(canvasPane, bestGene.get(bestGene.size()-1));
 //										car.tuneCar(canvasPane, storeBstGene.get(0));
 
 										initialSetSensorsLine();
@@ -432,9 +439,9 @@ public class cihw2 extends Application {
 						}
 						
 						if(finalFlag == 1){
-							sensorLine1.setVisible(false);
-							sensorLine2.setVisible(false);
-							sensorLine3.setVisible(false);
+//							sensorLine1.setVisible(false);
+//							sensorLine2.setVisible(false);
+//							sensorLine3.setVisible(false);
 
 							break;
 						}
@@ -519,7 +526,7 @@ public class cihw2 extends Application {
 				
 		ArrayList<ArrayList<double[]>> nPool = new ArrayList<ArrayList<double[]>>();
 		
-		int getHalf = geneInfoArray.size() *2/5;
+		int getHalf = geneInfoArray.size() /2;
 
 		for(int i=0;i<geneInfoArray.size();i++){
 			nPool.add(geneInfoArray.get(i));
@@ -661,11 +668,11 @@ public class cihw2 extends Application {
 		}
 		for(int i=getEighty;i<geneInfoArray.size();i++){
 			ArrayList<double[]> tempArray = new ArrayList<double[]>();
-			int neuron = 3;
+			int neuron = 9;
 			double[] weight = new double[neuron];
 			double[] theta = new double[1];
 			double[] sigma = new double[neuron];
-			double[] mean = new double[neuron * neuron];
+			double[] mean = new double[3 * neuron];
 			
 			theta[0] = Math.random();
 			for (int a = 0; a < neuron; a++) {
@@ -710,19 +717,27 @@ public class cihw2 extends Application {
 			}
 
 			double distanceDef = Math.random();
-			double crossSigma = Math.random();
+			double crossSigma = 0.2;
 			double doCrossoverProb = Math.random();
 
 			if (doCrossoverProb < crossoverProb) {
 				// do crossover
-				if (distanceDef > 0.5) {
 					for (int j = 0; j < pool.get(crossNo1).size(); j++) {
 						for (int k = 0; k < pool.get(crossNo1).get(j).length; k++) {
 							double c1 = pool.get(crossNo1).get(j)[k];
 							double c2 = pool.get(crossNo2).get(j)[k];
-							double judge1 = c1 + crossSigma * (c1 - c2);
-							double judge2 = c2 - crossSigma * (c1 - c2);
-
+							
+							double judge1;
+							double judge2;
+							if(distanceDef > 0.5){
+								 judge1 = c1 + crossSigma * (c1 - c2);
+								 judge2 = c2 - crossSigma * (c1 - c2);
+							}
+							else{
+								 judge1 = c1 + crossSigma * (c2 - c1);
+								 judge2 = c2 - crossSigma * (c2 - c1);
+							}
+							
 							if (j == 0) {
 								if (judge1 > 1 || judge1 < 0) {
 									// complete reproduction
@@ -767,62 +782,7 @@ public class cihw2 extends Application {
 							}
 						}
 					}
-				} else {
-					for (int j = 0; j < pool.get(crossNo1).size(); j++) {
-						for (int k = 0; k < pool.get(crossNo1).get(j).length; k++) {
-							double c1 = pool.get(crossNo1).get(j)[k];
-							double c2 = pool.get(crossNo2).get(j)[k];
-							double judge1 = c1 + crossSigma * (c2 - c1);
-							double judge2 = c2 - crossSigma * (c2 - c1);
-
-							if (j == 0) {
-								if (judge1 > 1 || judge1 < 0) {
-								} else {
-									pool.get(crossNo1).get(j)[k] = judge1;
-								}
-								if (judge2 > 1 || judge2 < 0) {
-								} else {
-									pool.get(crossNo2).get(j)[k] = judge2;
-								}
-							} else if (j == 1) {
-								if (judge1 > 40 || judge1 < -40) {
-									// complete reproduction
-								} else {
-									// add some noise
-									pool.get(crossNo1).get(j)[k] = judge1;
-								}
-								if (judge2 > 40 || judge2 < -40) {
-								} else {
-									pool.get(crossNo2).get(j)[k] = judge2;
-								}
-
-							} else if (j == 2) {
-								if (judge1 > 30 || judge1 < 0) {
-								} else {
-									pool.get(crossNo1).get(j)[k] = judge1;
-								}
-								if (judge2 > 30 || judge2 < 0) {
-								} else {
-									pool.get(crossNo2).get(j)[k] = judge2;
-								}
-							} else {
-								if (judge1 > 10 || judge1 < 0) {
-								} else {
-									pool.get(crossNo1).get(j)[k] = judge1;
-								}
-								if (judge2 > 10 || judge2 < 0) {
-								} else {
-									pool.get(crossNo2).get(j)[k] = judge2;
-								}
-
-							}
-						}
-					}
-				}
-			} else {
-				// donothing
-
-			}
+			} 
 		}
 
 		geneInfoArray.clear();
@@ -832,15 +792,14 @@ public class cihw2 extends Application {
 	public void mutation() {
 		// mutation
 		Random rand = new Random();
-		double s = 0;
+		double randomNois = 0;
 		if (Math.random() > 0.5) {
-			s = (rand.nextFloat() + 0f);
+			randomNois = (rand.nextFloat() + 0f);
 		} else {
-			s = (rand.nextFloat() - 1f);
+			randomNois = (rand.nextFloat() - 1f);
 		}
 
-		double doMutationProb = Math.random();
-		double randomNois = 1;
+		int s = 1;
 
 		int mutaLimit = (int) (geneArray.size() * mutationProb) - 1;
 		
@@ -850,26 +809,23 @@ public class cihw2 extends Application {
 
 			for (int i = 0; i < geneInfoArray.get(mutationNo).size(); i++) {
 				for (int j = 0; j < geneInfoArray.get(mutationNo).get(i).length; j++) {
+					double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
 					if (i == 0) {
-						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
 						if (judge > 1 || judge < 0) {
 						} else {
 							geneInfoArray.get(mutationNo).get(i)[j] = judge;
 						}
 					} else if (i == 1) {
-						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
 						if (judge > 40 || judge < -40) {
 						} else {
 							geneInfoArray.get(mutationNo).get(i)[j] = judge;
 						}
 					} else if (i == 2) {
-						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
 						if (judge > 30 || judge < 0) {
 						} else {
 							geneInfoArray.get(mutationNo).get(i)[j] = judge;
 						}
 					} else {
-						double judge = geneInfoArray.get(mutationNo).get(i)[j] + s * randomNois;
 						if (judge > 10 || judge < 0) {
 						} else {
 							geneInfoArray.get(mutationNo).get(i)[j] = judge;
@@ -880,32 +836,8 @@ public class cihw2 extends Application {
 
 		}
 		
-
-
 	}
-
-	public void drawPath(ArrayList<double[]> showArray) {
-		for (int i = 0; i < showArray.size(); i++) {
-			Circle path = new Circle();
-			path.setCenterX(startPointX * ratio + showArray.get(i)[0] * ratio);
-			path.setCenterY(startPointY * ratio + showArray.get(i)[1] * -ratio);
-			path.setRadius(3);
-			path.setStroke(Color.DARKGRAY);
-			path.setFill(Color.DARKGRAY);
-			canvasPane.getChildren().add(path);
-
-		}
-	}
-
-	public void inputDataNormalize() {
-		int desireNumer = inputArray.get(0).length - 1;
-		for (int i = 0; i < inputArray.size(); i++) {
-			double cal = inputArray.get(i)[desireNumer];
-			cal = (cal + 40) / 80;
-			inputArray.get(i)[desireNumer] = cal;
-		}
-	}
-
+	
 	public void initialSetSensorsLine() {
 		sensorLine1.setStartX(transToCanvasX(car.getX()));
 		sensorLine1.setStartY(transToCanvasY(car.getY()));

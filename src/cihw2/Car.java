@@ -20,7 +20,7 @@ public class Car extends Circle {
 	private int startFlag = 0;
 	private double x;
 	private double y;
-
+	private int count = 0;
 	public Car(Canvas canvasPane) {
 		this.canvasPane = canvasPane;
 
@@ -53,6 +53,7 @@ public class Car extends Circle {
 		double[] distance = { (this.sensor1.getDist()),
 				(this.sensor2.getDist()) ,
 				(this.sensor3.getDist())};
+		
 		for(int i=0;i<distance.length;i++){
 			if(distance[i] > 30){
 				distance[i] = 30;
@@ -64,20 +65,33 @@ public class Car extends Circle {
 //			System.out.println("output :"+output);
 			turnAngle = output;
 		} else {
-			turnAngle = 0;
+//			turnAngle = -2.3;
 			startFlag = 1;
 		}
+
+//		if(turnAngle < -1){
+//			turnAngle -= 2;
+//		}
+
 		//
-		// turnAngle *= -1;
+		 turnAngle *= -1;
+		 
+//		if(count == 6){
+//			turnAngle += 2;
+//		}
+//		count++;
+
 		//
 		System.out.println(" left : " + distance[2] + " middle :" + distance[0] + " right : " + distance[1]);
-		System.out.println("turnAngle : "+turnAngle+ " now's Angle :"+angle);
-		System.out.println("===========================================");
+		System.out.println("turnAngle : "+turnAngle);
+		System.out.println( " now's Angle :"+angle);
+		System.out.println("==========================================");
 
+		
 //		 turnAngle = fuzzy.getTurnAngle();
 		this.setX(this.getX()+Math.cos(Math.toRadians(angle + turnAngle)+Math.sin(Math.toRadians(turnAngle)*Math.sin(Math.toRadians(angle)))));
 		this.setY(this.getY()+Math.sin(Math.toRadians(angle + turnAngle)-Math.sin(Math.toRadians(turnAngle)*Math.cos(Math.toRadians(angle)))));
-
+		
 		// Tune car's coordinate
 		this.setCenterX(transToCanvasX(this.getX()));
 		this.setCenterY(transToCanvasY(this.getY()));
@@ -86,7 +100,7 @@ public class Car extends Circle {
 		setSensorsCarCoordinate(this.getX(), this.getY());
 
 		// Calculate angle with x-axis
-		angle = angle - (180 / Math.PI) * Math.asin((2 * Math.sin(Math.toRadians(turnAngle)) / (6)));
+		angle = angle - (180 / Math.PI) * Math.asin((2 * Math.sin(Math.toRadians(-1*turnAngle)) / (6)));
 //		if (angle < 0) {
 //			angle += 360;
 //		}
@@ -97,18 +111,42 @@ public class Car extends Circle {
 		// Set sensors X and Y
 		this.sensor1.setX((this.getX())+3*Math.cos(Math.toRadians(angle)));
 		this.sensor1.setY(this.getY()+3*Math.sin(Math.toRadians(angle)));
+		Circle r1 = new Circle();
+		r1.setCenterX(transToCanvasX(this.sensor1.getX()));
+		r1.setCenterY(transToCanvasY(this.sensor1.getY()));
+		r1.setRadius(3);
+		r1.setStroke(Color.DARKGRAY);
+		r1.setFill(Color.RED);
+//		canvasPane.getChildren().add(r1);
+
 		double angleForS2 = angle-45;
 //		if(angleForS2 >360){
 //			angleForS2 %= 360;
 //		}
 		this.sensor2.setX(this.getX()+(3*Math.cos(Math.toRadians(angleForS2))));
 		this.sensor2.setY(this.getY()+(3*Math.sin(Math.toRadians(angleForS2))));
+		Circle r2 = new Circle();
+		r2.setCenterX(transToCanvasX(this.sensor2.getX()));
+		r2.setCenterY(transToCanvasY(this.sensor2.getY()));
+		r2.setRadius(3);
+		r2.setStroke(Color.DARKGRAY);
+		r2.setFill(Color.BLUE);
+//		canvasPane.getChildren().add(r2);
+
 		double angleForS3 = angle+45;
 //		if(angleForS3 <0){
 //			angleForS3 += 360;
 //		}
 		this.sensor3.setX(this.getX()+(3*Math.cos(Math.toRadians(angleForS3))));
 		this.sensor3.setY(this.getY()+(3*Math.sin(Math.toRadians(angleForS3))));
+		Circle r3 = new Circle();
+		r3.setCenterX(transToCanvasX(this.sensor3.getX()));
+		r3.setCenterY(transToCanvasY(this.sensor3.getY()));
+		r3.setRadius(3);
+		r3.setStroke(Color.DARKGRAY);
+		r3.setFill(Color.GREEN);
+//		canvasPane.getChildren().add(r3);
+
 		
 		// Add path on canvas
 		addPathOnCanvas(canvasPane);
@@ -117,18 +155,21 @@ public class Car extends Circle {
 	public void sliderTuneCar(){
 		this.sensor1.setX((this.getX())+3*Math.cos(Math.toRadians(angle)));
 		this.sensor1.setY(this.getY()+3*Math.sin(Math.toRadians(angle)));
+
 		double angleForS2 = angle-45;
 //		if(angleForS2 <0){
 //			angleForS2 += 360;
 //		}
 		this.sensor2.setX(this.getX()+(3*Math.cos(Math.toRadians(angleForS2))));
 		this.sensor2.setY(this.getY()+(3*Math.sin(Math.toRadians(angleForS2))));
+
 		double angleForS3 = angle+45;
 //		if(angleForS3 > 360){
 //			angleForS3 %= 360;
 //		}
 		this.sensor3.setX(this.getX()+(3*Math.cos(Math.toRadians(angleForS3))));
 		this.sensor3.setY(this.getY()+(3*Math.sin(Math.toRadians(angleForS3))));
+
 		
 		setSensorsCarCoordinate(this.getX(),this.getY());
 	}

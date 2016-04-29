@@ -24,7 +24,9 @@ public class Sensor {
 		this.carY = carY;
 		// TODO Auto-generated constructor stub
 	}
-
+	public void setDist(double dist){
+		this.closestLineDist = dist;
+	}
 	public void setX(double x) {
 		this.x = x;
 	}
@@ -89,11 +91,11 @@ public class Sensor {
 			if (ans > 0) {
 				tempDist[i] = Math.sqrt(a * a + b * b);
 			} else {
-				tempDist[i] = 60;
+				tempDist[i] = 50;
 			}
 
 		} else {
-			tempDist[i] = 60;
+			tempDist[i] = 50;
 		}
 
 	}

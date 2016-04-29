@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Gene {
-	private int neuronNumber = 3;
+	private int neuronNumber = 9;
 	private double theta[];
 	private double[] weight;
 	private double[] fi;
@@ -41,14 +41,14 @@ public class Gene {
 			}
 
 			weight[i] = temp;
-			
+			sigma[i] = Math.random() * 10;
+		}
+		for (int j = 0; j < neuronNumber; j++) {
 			double[] tempM = new double[3];
-			for (int j = 0; j < 3; j++) {
-				tempM[j] = Math.random() * 30;
+			for(int k=0;k<tempM.length;k++){
+				tempM[k] = Math.random() * 30;
 			}
 			mean.add(tempM);
-			
-			sigma[i] = Math.random() * 10;
 		}
 
 	}
@@ -104,7 +104,7 @@ public class Gene {
 		for (int i = 0; i < x.length; i++) {
 			temp += Math.pow((x[i] - m2[i]), 2);
 		}
-		returnValue = Math.exp((-1 * temp) / (2 * sigma2 * sigma2));
+		returnValue = Math.exp(-0.5 *( temp / (sigma2 * sigma2)));
 		return returnValue;
 	}
 
@@ -118,8 +118,8 @@ public class Gene {
 				} else if (i == 1) {
 					this.weight[j] = newGeneInfo.get(i)[j];
 				} else if (i ==2 ){
-					int gi = j/neuronNumber;
-					int gj = j%neuronNumber;
+					int gi = j/3;
+					int gj = j%3;
 					this.mean.get(gi)[gj] = newGeneInfo.get(i)[j];
 				}else{
 					this.sigma[j] = newGeneInfo.get(i)[j];
