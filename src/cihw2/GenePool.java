@@ -5,24 +5,24 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class GenePool {
+	private ArrayList<double[]> inputArray;
 	private ArrayList<Gene> geneArray;
 	private ArrayList<ArrayList<double[]>> geneInfoArray;
 	private ArrayList<ArrayList<double[]>> pool;
-	
-	private ArrayList<Gene> bestGene;
-	private double bstGeneFit = Double.MAX_VALUE;
-	private double bstGeneAvge = Double.MAX_VALUE;
 
-	private ArrayList<Gene> storeBstGene;
-	private ArrayList<ArrayList<double[]>> bestInfoArray;
+	private ArrayList<Gene> tempRankedGene;
 	
 	private int looptimes;
 	private int groupSize;
 	private double crossoverProb;
 	private double mutationProb;
-	private int iteration;
-
-	public GenePool(double[] parameters){
+	
+	private int iteration;	
+	
+	public GenePool(double[] parameters,ArrayList<double[]> inputArray){
+		
+		this.inputArray = inputArray;
+		
 		geneArray = new ArrayList<Gene>();
 		geneInfoArray = new ArrayList<ArrayList<double[]>>();
 		pool = new ArrayList<ArrayList<double[]>>();
@@ -32,7 +32,98 @@ public class GenePool {
 		this.crossoverProb = parameters[2];
 		this.mutationProb = parameters[3];
 		
+		// generate genes
+		for (int i = 0; i < groupSize; i++) {
+			Gene tempGene = new Gene();
+			geneArray.add(tempGene);
+		}
+
 	}
+	
+	public void startAlgo(int iteration){
+		this.iteration = iteration;
+		
+		double[] fitnessError = new double[geneArray.size()];
+		double[] avgError = new double[geneArray.size()];
+
+		for (int i = 0; i < fitnessError.length; i++) {
+			fitnessError[i] = 0;
+		}
+		for (int i = 0; i < avgError.length; i++) {
+			avgError[i] = 0;
+		}
+
+
+		for (int i = 0; i < geneArray.size(); i++) {
+
+			for (int j = 0; j < inputArray.size(); j++) {
+				double[] distance = new double[3];
+				double desire = inputArray.get(j)[inputArray.get(j).length - 1];
+
+				distance[0] = inputArray.get(j)[0];
+				distance[1] = inputArray.get(j)[1];
+				distance[2] = inputArray.get(j)[2];
+
+				double output = geneArray.get(i).calOutput(distance);
+
+				double errorTemp = Math.pow((desire - output), 2);
+				double avgETemp = Math.abs(desire - output);
+				fitnessError[i] += errorTemp;
+				avgError[i] += avgETemp;
+			}
+			fitnessError[i] /= 2;
+			avgError[i] /= inputArray.size();
+			geneArray.get(i).setFitnessValue(fitnessError[i]);
+			geneArray.get(i).setAvgError(avgError[i]);
+
+		}
+
+		// here's fitness function is smaller => better
+
+		rankSort();
+
+		// store sortedGene back to geneArray
+		tempRankedGene = new ArrayList<Gene>();
+
+		for (int i = 0; i < geneArray.size(); i++) {
+			for (int j = 0; j < geneArray.size(); j++) {
+				if (i == geneArray.get(j).getFitnessRank()) {
+					tempRankedGene.add(geneArray.get(j));
+				}
+			}
+		}
+		geneArray.clear();
+		for (int i = 0; i < tempRankedGene.size(); i++) {
+			geneArray.add(tempRankedGene.get(i));
+		}
+
+		geneInfoArray = new ArrayList<ArrayList<double[]>>();
+		for (int i = 0; i < geneArray.size(); i++) {
+			geneInfoArray.add(geneArray.get(i).getGeneInfo());
+		}
+
+		reproduction();
+
+		crossover();
+
+		mutation();
+
+		for (int i = 0; i < geneArray.size(); i++) {
+			geneArray.get(i).updateGeneInfo(geneInfoArray.get(i));
+		}
+
+	}
+	public Gene getBestGene(){
+		return this.geneArray.get(0);
+	}
+	
+	public double getAfterAlgoFitness(){
+		return this.geneArray.get(0).getFitnessValue();
+	}
+	public double getAfterAlgoAvgError(){
+		return this.geneArray.get(0).getAvgError();
+	}
+	
 	public void rankSort() {
 
 		double[] readyToSort = new double[geneArray.size()];
