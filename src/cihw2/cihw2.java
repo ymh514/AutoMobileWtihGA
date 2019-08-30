@@ -254,7 +254,7 @@ public class cihw2 extends Application {
 							@Override
 							public void run() {
 								
-								printCurrentThread();
+//								printCurrentThread();
 								
 								if(finalFlag == 1){
 									line1Dist.setText("done");
